@@ -2,10 +2,10 @@ from vepar import *
 
 
 class T(TipoviTokena):
-    IF, THEN, ELSE, ENDIF, PRINT = 'if', 'then', 'else', 'endif', 'print'
+    IF, THEN, ELSE, ENDIF, PRINT, NEWLINE = 'if', 'then', 'else', 'endif', 'print', 'newline'
     PLUS, MINUS, PUTA, DIV = '+-*/'
-    MANJE, VECE, MANJEJ, VECEJ, JEDNAKOJ, NEJEDNAKO = '<', '>', '<=', '>=', '==', '!='
-    OTV, ZATV, JEDNAKO, TOČKAZ = '()=;'
+    MANJE, VECE, JMANJE, JVECE, JJEDNAKO, NEJEDNAKO = '<', '>', '<=', '>=', '==', '!='
+    OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK = '()=;"'
 
     class BROJ(Token):
         def vrijednost(self): return int(self.sadržaj)
@@ -15,14 +15,19 @@ class T(TipoviTokena):
 @lexer
 def snail(lex):
     for znak in lex:
-        if znak.isspace(): lex.zanemari()
-        elif znak == '+':
-            if lex >= '+': yield lex.token(T.PLUSP)
-            elif lex >= '=': yield lex.token(T.PLUSJ)
-            else: raise lex.greška('u ovom jeziku nema samostalnog +')
-        elif znak == '<': yield lex.token(T.MMANJE if lex >= '<' else T.MANJE)
+        if znak.isspace():
+            lex.zanemari()
+        elif znak == '<':
+            yield lex.token(T.JMANJE if lex >= '=' else T.MANJE)
+        elif znak == '>':
+            yield lex.token(T.JVECE if lex >= '=' else T.VECE)
         elif znak == '=':
-            yield lex.token(T.JJEDNAKO if lex >= '=' else T.JEDNAKO)
+            yield lex.token(T.JJEDNAKO if lex >= '=' else T.PRIDRUŽI)
+        elif znak == '!':
+            lex >> '='
+            yield lex.token(T.NEJEDNAKO)
+        elif znak == '/' and lex > '/':
+            lex <= '\n'
         elif znak.isalpha() or znak == '_':
             lex * {str.isalnum, '_'}
             yield lex.literal_ili(T.IME)
@@ -31,15 +36,12 @@ def snail(lex):
             yield lex.token(T.BROJ)
         else: yield lex.literal(T)
 
-snail(ulaz := '''
-    for ( i = 8 ; i < 13 ; i += 2 ) {
-        for(j=0; j<5; j++) {
-            cout<<i<<j;
-            if(i == 10) if (j == 1) break;
-        }
-        cout<<i<<endl;
-    }
-''')
+if __name__ == "__main__":
+    import os, glob
+    path = '../snail'
+    for filename in glob.glob(os.path.join(path, '*.txt')):
+        with open(os.path.join(os.getcwd(), filename), 'r') as f:
+            snail(f.read())
 
 # prikaz(F := P(ulaz))
 # prikaz(F := F.optim())
