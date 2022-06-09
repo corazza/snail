@@ -9,6 +9,8 @@ class T(TipoviTokena):
 
     class BROJ(Token):
         def vrijednost(self): return int(self.sadržaj)
+    class STRING(Token):
+        def vrijednost(self): return self.sadržaj.strip('"')
     class IME(Token):
         def vrijednost(self): return rt.mem[self]
 
@@ -33,6 +35,9 @@ def snail(lex):
                     if lex > '/':
                         break
                 lex.zanemari()
+        elif znak == '"':
+            lex <= '"'
+            yield lex.token(T.STRING)
         elif znak.isalpha() or znak == '_':
             lex * {str.isalnum, '_'}
             yield lex.literal_ili(T.IME)
