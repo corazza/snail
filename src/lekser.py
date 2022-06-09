@@ -2,12 +2,11 @@ from vepar import *
 
 
 class T(TipoviTokena):
-    FOR, COUT, ENDL, IF = 'for', 'cout', 'endl', 'if'
-    OOTV, OZATV, VOTV, VZATV, MANJE, JEDNAKO, TOČKAZ = '(){}<=;'
-    PLUSP, PLUSJ, MMANJE, JJEDNAKO = '++', '+=', '<<', '=='
-    class BREAK(Token):
-        literal = 'break'
-        def izvrši(self): raise Prekid
+    IF, THEN, ELSE, ENDIF, PRINT = 'if', 'then', 'else', 'endif', 'print'
+    PLUS, MINUS, PUTA, DIV = '+-*/'
+    MANJE, VECE, MANJEJ, VECEJ, JEDNAKOJ, NEJEDNAKO = '<', '>', '<=', '>=', '==', '!='
+    OTV, ZATV, JEDNAKO, TOČKAZ = '()=;'
+
     class BROJ(Token):
         def vrijednost(self): return int(self.sadržaj)
     class IME(Token):
