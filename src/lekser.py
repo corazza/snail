@@ -9,10 +9,13 @@ class T(TipoviTokena):
 
     class BROJ(Token):
         def vrijednost(self): return int(self.sadržaj)
+
     class STRING(Token):
         def vrijednost(self): return self.sadržaj.strip('"')
+
     class IME(Token):
         def vrijednost(self): return rt.mem[self]
+
 
 @lexer
 def snail(lex):
@@ -44,7 +47,9 @@ def snail(lex):
         elif znak.isdecimal():
             lex.prirodni_broj(znak)
             yield lex.token(T.BROJ)
-        else: yield lex.literal(T)
+        else:
+            yield lex.literal(T)
+
 
 if __name__ == "__main__":
     from util import test_on
