@@ -23,11 +23,16 @@ def snail(lex):
             yield lex.token(T.JVECE if lex >= '=' else T.VECE)
         elif znak == '=':
             yield lex.token(T.JJEDNAKO if lex >= '=' else T.PRIDRUŽI)
-        elif znak == '!':
-            lex >> '='
-            yield lex.token(T.NEJEDNAKO)
-        elif znak == '/' and lex > '/':
-            lex <= '\n'
+        elif znak == '/':
+            if lex > '/':
+                lex <= '\n'
+                lex.zanemari()
+            elif lex > '*':
+                while True:
+                    lex.pročitaj_do('*', uključivo=True, više_redova=True)
+                    if lex > '/':
+                        break
+                lex.zanemari()
         elif znak.isalpha() or znak == '_':
             lex * {str.isalnum, '_'}
             yield lex.literal_ili(T.IME)
@@ -37,11 +42,8 @@ def snail(lex):
         else: yield lex.literal(T)
 
 if __name__ == "__main__":
-    import os, glob
-    path = '../primjeri'
-    for filename in glob.glob(os.path.join(path, '*.txt')):
-        with open(os.path.join(os.getcwd(), filename), 'r') as f:
-            snail(f.read())
+    from util import test_on
+    test_on(snail, path='../primjeri_test')
 
 # prikaz(F := P(ulaz))
 # prikaz(F := F.optim())

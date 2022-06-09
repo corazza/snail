@@ -1,0 +1,5 @@
+v = 10; // jednolinijski komentar
+
+/* viselinijski
+i = 5;
+komentar */
