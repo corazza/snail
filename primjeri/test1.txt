@@ -1,0 +1,16 @@
+v = 10;
+i = 0;
+
+if i <= v then
+    print i*i; // print the square of i
+    if i == v/2 then // is i the half of v?
+        print newline; //yes
+    else
+        print "--"; //no
+    endif
+    i = i + 1;
+endif
+
+print newline;
+print "end of execution";
+print newline;
