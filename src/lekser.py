@@ -38,7 +38,7 @@ def snail(lex):
 
 if __name__ == "__main__":
     import os, glob
-    path = '../snail'
+    path = '../primjeri'
     for filename in glob.glob(os.path.join(path, '*.txt')):
         with open(os.path.join(os.getcwd(), filename), 'r') as f:
             snail(f.read())
