@@ -4,10 +4,10 @@ from util import get_test_dir
 
 
 class T(TipoviTokena):
-    IF, THEN, ELSE, ENDIF, PRINT, NEWLINE = 'if', 'then', 'else', 'endif', 'print', 'newline'
+    IF, THEN, ELSE, ENDIF, PRINT, NEWLINE, DEF, ENDDEF, RETURN = 'if', 'then', 'else', 'endif', 'print', 'newline', 'def', 'enddef', 'return'
     PLUS, MINUS, PUTA, DIV = '+-*/'
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO = '<', '>', '<=', '>=', '==', '!='
-    OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK = '()=;"'
+    OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
 
     class BROJ(Token):
         def vrijednost(self): return int(self.sadržaj)

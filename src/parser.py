@@ -6,6 +6,8 @@
 # naredba   -> pridruživanje
 #            | printanje
 #            | grananje
+#            | definiranje
+#            | vraćanje
 #
 # pridruživanje -> IME# JEDNAKO izraz TOČKAZ
 #
@@ -15,6 +17,12 @@
 #
 # grananje  -> IF izraz THEN naredbe ENDIF
 #            | IF izraz THEN naredbe ELSE naredbe ENDIF
+#
+# vraćanje  -> VRATI TOČKAZ
+#            | VRATI izraz TOČKAZ
+#
+# definiranje -> DEF ime OTV parametri ZATV naredbe ENDDEF
+# parametri -> ime | parametri ZAREZ ime
 #
 # izraz -> član
 #        | izraz PLUS član
@@ -32,9 +40,14 @@
 #
 # faktor    -> BROJ#
 #            | IME#
+#            | IME# poziv
 #            | OTV izraz ZATV
 #            | MINUS faktor
+#
+# poziv -> OTV ZATV | OTV argumenti ZATV
+# argumenti -> izraz | argumenti ZAREZ izraz
 
+from inspect import Parameter
 from vepar import *
 
 from lekser import *
@@ -44,6 +57,9 @@ from util import get_test_dir
 
 class P(Parser):
     def start(p) -> 'Program':
+        p.imef = None
+        p.parametrif = None
+        p.funkcije = Memorija(redefinicija=False)
         return Program(p.naredbe(KRAJ))
 
     def naredbe(p, until, pojedi=False) -> 'naredba+':
@@ -56,45 +72,21 @@ class P(Parser):
 
     def naredba(p) -> 'pridruživanje|printanje|grananje':
         if ime := p >= T.IME:
-            vrati = p.pridruživanje(ime)
+            return p.pridruživanje(ime)
         elif p >= T.PRINT:
-            vrati = p.printanje()
-        elif p >> T.IF:
-            vrati = p.grananje()
-        return vrati
+            return p.printanje()
+        elif p >= T.IF:
+            return p.grananje()
+        elif p >= T.DEF:
+            return p.definiranje()
+        elif p >> T.RETURN:
+            return p.vraćanje()
 
     def pridruživanje(p, ime) -> 'Pridruživanje':
         p >> T.PRIDRUŽI
         izraz = p.izraz()
         p >> T.TOČKAZ
         return Pridruživanje(ime, izraz)
-
-    def izraz(p):
-        stablo = p.član()
-        while op := p >= {T.PLUS, T.MINUS, T.MANJE, T.VECE, T.JMANJE, T.JVECE, T.JEDNAKO, T.NEJEDNAKO}:
-            desni = p.član()
-            stablo = Infix(op, stablo, desni)
-        return stablo
-
-    def član(p) -> 'Faktor|Infix':
-        stablo = p.faktor()
-        while op := p >= {T.PUTA, T.DIV}:
-            desni = p.faktor()
-            stablo = Infix(op, stablo, desni)
-        return stablo
-
-    def faktor(p):
-        if p >= T.OTV:
-            izraz = p.izraz()
-            p >> T.ZATV
-            return izraz
-        elif p >= T.MINUS:
-            return Suprotan(p.faktor())
-        elif broj := p >= T.BROJ:
-            return broj
-        else:
-            ime = p >> T.IME
-            return ime
 
     def grananje(p) -> 'Grananje':
         provjera = p.izraz()
@@ -119,6 +111,74 @@ class P(Parser):
             izraz = p.izraz()
             p >> T.TOČKAZ
             return Printanje(izraz)
+
+    def definiranje(p) -> 'Funkcija':
+        ime = p >> T.IME
+        p >> T.OTV
+        parametri = p.parametri()
+        p >> T.ZATV
+        tijelo = p.naredbe(T.ENDDEF, pojedi=True)
+        fja = Funkcija(ime, parametri, tijelo)
+        p.imef = ime
+        p.parametrif = parametri
+        p.funkcije[ime] = fja
+        return fja
+
+    def vraćanje(p):
+        if p > T.TOČKAZ:
+            return Vraćanje(nenavedeno)
+        else:
+            vratiti = p.izraz()
+            p >> T.TOČKAZ
+            return vratiti
+
+    def izraz(p):
+        stablo = p.član()
+        while op := p >= {T.PLUS, T.MINUS, T.MANJE, T.VECE, T.JMANJE, T.JVECE, T.JEDNAKO, T.NEJEDNAKO}:
+            desni = p.član()
+            stablo = Infix(op, stablo, desni)
+        return stablo
+
+    def član(p) -> 'faktor|Infix':
+        stablo = p.faktor()
+        while op := p >= {T.PUTA, T.DIV}:
+            desni = p.faktor()
+            stablo = Infix(op, stablo, desni)
+        return stablo
+
+    def faktor(p):
+        if p >= T.OTV:
+            izraz = p.izraz()
+            p >> T.ZATV
+            return izraz
+        elif p >= T.MINUS:
+            return Infix(T.MINUS, 0, p.faktor())
+        elif broj := p >= T.BROJ:
+            return broj
+        else:
+            ime = p >> T.IME
+            return p.možda_poziv(ime)
+
+    def možda_poziv(p, ime) -> 'Poziv|IME':
+        if ime in p.funkcije:
+            funkcija = p.funkcije[ime]
+            return Poziv(funkcija, p.argumenti(funkcija.parametri))
+        elif ime == p.imef:
+            return Poziv(nenavedeno, p.argumenti(p.parametrif))
+        else:
+            return ime
+
+    def parametri(p):
+        parametri = [p >> T.IME]
+        while p >= T.ZAREZ:
+            parametri.append(p >> T.IME)
+        return parametri
+
+    def argumenti(p):
+        izrazi = [p.izraz()]
+        while p >= T.ZAREZ:
+            izrazi.append(p.izraz())
+        return izrazi
 
 
 def test(src):
