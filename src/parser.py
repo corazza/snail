@@ -1,6 +1,6 @@
-# BKG za našu Snail implementaciju
+## BKG za našu Snail implementaciju
 #
-# program -> naredbe
+# start -> naredbe
 # naredbe -> naredbe naredba | naredba
 #
 # naredba   -> pridruživanje
@@ -34,14 +34,14 @@
 from vepar import *
 
 from lekser import *
+from ast import *
 
-
-# class P(Parser):
-#     def start(p) -> 'Program':
-#         naredbe = [p.naredba()]
-#         while not p > KRAJ:
-#             naredbe.append(p.naredba())
-#         return Program(naredbe)
+class P(Parser):
+    def start(p) -> 'Program':
+        naredbe = [p.naredba()]
+        while not p > KRAJ:
+            naredbe.append(p.naredba())
+        return Program(naredbe)
 
 #     def naredba(p) -> 'petlja|ispis|grananje|BREAK':
 #         if p > T.FOR:
