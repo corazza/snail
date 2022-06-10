@@ -33,11 +33,3 @@ class Infix(AST):
     operator: 'PLUS|MINUS|...'
     lijevi: 'faktor'
     desni: 'faktor'
-
-
-class Izraz(AST):
-    pribrojnici: 'član*'
-
-
-class Suprotan(AST):
-    član: 'član|faktor'
