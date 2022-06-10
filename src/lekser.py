@@ -1,5 +1,7 @@
 from vepar import *
 
+from util import get_test_dir
+
 
 class T(TipoviTokena):
     IF, THEN, ELSE, ENDIF, PRINT, NEWLINE = 'if', 'then', 'else', 'endif', 'print', 'newline'
@@ -36,8 +38,11 @@ def snail(lex):
                 while True:
                     lex.pročitaj_do('*', uključivo=True, više_redova=True)
                     if lex > '/':
+                        next(lex)
                         break
                 lex.zanemari()
+            else:
+                yield lex.literal(T)
         elif znak == '"':
             lex <= '"'
             yield lex.token(T.STRING)
@@ -53,7 +58,7 @@ def snail(lex):
 
 if __name__ == "__main__":
     from util import test_on
-    test_on(snail, path='../primjeri_test')
+    test_on(snail, path=get_test_dir())
 
 # prikaz(F := P(ulaz))
 # prikaz(F := F.optim())

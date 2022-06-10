@@ -6,7 +6,7 @@ from vepar import *
 
 
 class Program(AST):
-    naredba: 'naredba*'
+    naredbe: 'naredba*'
 
     def izvrši(program):
         rt.mem = Memorija()
@@ -23,12 +23,21 @@ class Printanje(AST):
     sadržaj: 'izraz|STRING#|NEWLINE'
 
 
-class Infix(AST):
-    operator: 'PLUS|MINUS|PUTA|DIV|MANJE|VECE|JMANJE|JVECE|JEDNAKO|NEJEDNAKO'
-    lijevi: 'izraz'
-    desni: 'izraz'
-
 class Grananje(AST):
     provjera: 'izraz'
     ako: 'naredba+'
     inače: '(naredba+)?'
+
+
+class Infix(AST):
+    operator: 'PLUS|MINUS|...'
+    lijevi: 'faktor'
+    desni: 'faktor'
+
+
+class Izraz(AST):
+    pribrojnici: 'član*'
+
+
+class Suprotan(AST):
+    član: 'član|faktor'
