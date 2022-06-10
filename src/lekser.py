@@ -4,7 +4,7 @@ from vepar import *
 class T(TipoviTokena):
     IF, THEN, ELSE, ENDIF, PRINT, NEWLINE = 'if', 'then', 'else', 'endif', 'print', 'newline'
     PLUS, MINUS, PUTA, DIV = '+-*/'
-    MANJE, VECE, JMANJE, JVECE, JJEDNAKO, NEJEDNAKO = '<', '>', '<=', '>=', '==', '!='
+    MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO = '<', '>', '<=', '>=', '==', '!='
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK = '()=;"'
 
     class BROJ(Token):
@@ -27,7 +27,7 @@ def snail(lex):
         elif znak == '>':
             yield lex.token(T.JVECE if lex >= '=' else T.VECE)
         elif znak == '=':
-            yield lex.token(T.JJEDNAKO if lex >= '=' else T.PRIDRUŽI)
+            yield lex.token(T.JEDNAKO if lex >= '=' else T.PRIDRUŽI)
         elif znak == '/':
             if lex > '/':
                 lex <= '\n'

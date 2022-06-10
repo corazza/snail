@@ -1,20 +1,20 @@
-## BKG za našu Snail implementaciju
+# BKG za našu Snail implementaciju
 #
 # start -> naredbe
 # naredbe -> naredbe naredba | naredba
 #
 # naredba   -> pridruživanje
-#            | print
-#            | if
+#            | printanje
+#            | grananje
 #
 # pridruživanje -> IME# JEDNAKO izraz TOČKAZ
 #
-# print -> PRINT izraz TOČKAZ
-#        | PRINT STRING# TOČKAZ
-#        | PRINT NEWLINE TOČKAZ
+# printanje -> PRINT izraz TOČKAZ
+#            | PRINT STRING# TOČKAZ
+#            | PRINT NEWLINE TOČKAZ
 #
-# if    -> IF izraz THEN naredbe ENDIF
-#        | IF izraz THEN naredbe ELSE naredbe ENDIF
+# grananje  -> IF izraz THEN naredbe ENDIF
+#            | IF izraz THEN naredbe ELSE naredbe ENDIF
 #
 # izraz -> OTV izraz ZATV
 #        | izraz PLUS izraz
@@ -34,73 +34,69 @@
 from vepar import *
 
 from lekser import *
-from ast import *
+from snailast import *
+
 
 class P(Parser):
     def start(p) -> 'Program':
+        return Program(p.naredbe(KRAJ))
+
+    def naredbe(p, until) -> 'naredba+':
         naredbe = [p.naredba()]
-        while not p > KRAJ:
+        while not p > until:
             naredbe.append(p.naredba())
-        return Program(naredbe)
+        return naredbe
 
-#     def naredba(p) -> 'petlja|ispis|grananje|BREAK':
-#         if p > T.FOR:
-#             return p.petlja()
-#         elif p > T.COUT:
-#             return p.ispis()
-#         elif p > T.IF:
-#             return p.grananje()
-#         elif br := p >> T.BREAK:
-#             p >> T.TOČKAZ
-#             return br
+    def naredba(p) -> 'pridruživanje|printanje|grananje':
+        if p > T.IME:
+            return p.pridruživanje()
+        elif p > T.PRINT:
+            return p.printanje()
+        elif p > T.IF:
+            return p.grananje()
 
-#     def petlja(p) -> 'Petlja':
-#         kriva_varijabla = SemantičkaGreška(
-#             'Sva tri dijela for-petlje moraju imati istu varijablu.')
-#         p >> T.FOR, p >> T.OOTV
-#         i = p >> T.IME
-#         p >> T.JEDNAKO
-#         početak = p >> T.BROJ
-#         p >> T.TOČKAZ
+    def pridruživanje(p) -> 'Pridruživanje':
+        ime = p >> T.IME
+        p >> T.PRIDRUŽI
+        izraz = p >> p.izraz()
+        return Pridruživanje(ime, izraz)
 
-#         if (p >> T.IME) != i:
-#             raise kriva_varijabla
-#         p >> T.MANJE
-#         granica = p >> T.BROJ
-#         p >> T.TOČKAZ
+    def printanje(p) -> 'Printanje':
+        if p > T.NEWLINE:
+            return Printanje(T.NEWLINE)
+        elif p > T.STRING:
+            return Printanje(p >= T.STRING)
+        else:
+            return Printanje(p.izraz())
 
-#         if (p >> T.IME) != i:
-#             raise kriva_varijabla
-#         if p >= T.PLUSP:
-#             inkrement = nenavedeno
-#         elif p >> T.PLUSJ:
-#             inkrement = p >> T.BROJ
-#         p >> T.OZATV
+    def izraz(p) -> 'Infix':
+        if p > T.OTV:
+            p >> T.OTV
+            izraz = p.izraz()
+            p >> T.ZATV
+            return izraz
+        elif p > T.BROJ:
+            return p >= T.BROJ
+        elif p > T.IME:
+            return p >= T.IME
+        elif p > T.MINUS:
+            p >> T.MINUS
+            return Infix(T.MINUS, 0, p.izraz())
+        else:
+            lijevi = p.izraz()
+            operator = p >= {T.PLUS, T.MINUS, T.PUTA, T.DIV, T.MANJE,
+                             T.VECE, T.JMANJE, T.JVECE, T.JEDNAKO, T.NEJEDNAKO}
+            desni = p.izraz()
+            return Infix(operator, lijevi, desni)
 
-#         if p >= T.VOTV:
-#             blok = []
-#             while not p >= T.VZATV:
-#                 blok.append(p.naredba())
-#         else:
-#             blok = [p.naredba()]
-#         return Petlja(i, početak, granica, inkrement, blok)
-
-#     def ispis(p) -> 'Ispis':
-#         p >> T.COUT
-#         varijable, novired = [], nenavedeno
-#         while p >= T.MMANJE:
-#             if varijabla := p >= T.IME:
-#                 varijable.append(varijabla)
-#             else:
-#                 novired = p >> T.ENDL
-#                 break
-#         p >> T.TOČKAZ
-#         return Ispis(varijable, novired)
-
-#     def grananje(p) -> 'Grananje':
-#         p >> T.IF, p >> T.OOTV
-#         lijevo = p >> T.IME
-#         p >> T.JJEDNAKO
-#         desno = p >> T.BROJ
-#         p >> T.OZATV
-#         return Grananje(lijevo, desno, p.naredba())
+    def grananje(p) -> 'Grananje':
+        p >> T.IF
+        p >> T.OTV
+        provjera = p.izraz()
+        p >> T.ZATV
+        p >> T.THEN
+        ako = p.naredbe()
+        if p > T.ENDIF:
+            return Grananje(provjera, ako, p.naredba())
+        else:
+            inače = p.naredbe
