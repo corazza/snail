@@ -70,25 +70,18 @@ class P(Parser):
         return Pridruživanje(ime, izraz)
 
     def izraz(p):
-        članovi = [p.član()]
-        while True:
-            if p >= T.PLUS:
-                članovi.append(p.član())
-            elif p >= T.MINUS:
-                članovi.append(Suprotan(p.član()))
-            else:
-                return Izraz.ili_samo(članovi)
+        stablo = p.član()
+        while op := p >= {T.PLUS, T.MINUS, T.MANJE, T.VECE, T.JMANJE, T.JVECE, T.JEDNAKO, T.NEJEDNAKO}:
+            desni = p.član()
+            stablo = Infix(op, stablo, desni)
+        return stablo
 
     def član(p) -> 'Faktor|Infix':
-        lijevi = p.faktor()
-        stablo = None
-        while op := p >= {T.PUTA, T.DIV, T.MANJE, T.VECE, T.JMANJE, T.JVECE, T.JEDNAKO, T.NEJEDNAKO}:
+        stablo = p.faktor()
+        while op := p >= {T.PUTA, T.DIV}:
             desni = p.faktor()
-            stablo = Infix(op, lijevi, desni)
-        if stablo is not None:
-            return stablo
-        else:
-            return lijevi
+            stablo = Infix(op, stablo, desni)
+        return stablo
 
     def faktor(p):
         if p >= T.OTV:
