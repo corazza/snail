@@ -1,0 +1,25 @@
+def printaj_pa_vrati(n, rezultat, log)
+    if log then
+        print "(";
+        print n;
+        print ", ";
+        print rezultat;
+        print ")";
+        print newline;
+    endif
+    return rezultat;
+enddef
+
+def fib(n, log)
+    if n == 1 then
+        return printaj_pa_vrati(n, 0, log);
+    endif
+
+    if n == 2 then
+        return printaj_pa_vrati(n, 1, log);
+    endif
+
+    return printaj_pa_vrati(n, fib(n-1, log) + fib(n-2, log), log);
+enddef
+
+fib(5, 1);

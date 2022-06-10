@@ -8,6 +8,7 @@
 #            | grananje
 #            | definiranje
 #            | vraćanje
+#            | IME# poziv
 #
 # pridruživanje -> IME# JEDNAKO izraz TOČKAZ
 #
@@ -52,7 +53,7 @@ from vepar import *
 
 from lekser import *
 from snailast import *
-from util import get_test_dir
+from util import *
 
 
 class P(Parser):
@@ -68,11 +69,11 @@ class P(Parser):
             naredbe.append(p.naredba())
         if pojedi:
             p >> until
-        return naredbe
+        return Naredbe(naredbe)
 
     def naredba(p) -> 'pridruživanje|printanje|grananje':
         if ime := p >= T.IME:
-            return p.pridruživanje(ime)
+            return p.poziv_ili_pridruživanje(ime)
         elif p >= T.PRINT:
             return p.printanje()
         elif p >= T.IF:
@@ -82,11 +83,16 @@ class P(Parser):
         elif p >> T.RETURN:
             return p.vraćanje()
 
-    def pridruživanje(p, ime) -> 'Pridruživanje':
-        p >> T.PRIDRUŽI
-        izraz = p.izraz()
-        p >> T.TOČKAZ
-        return Pridruživanje(ime, izraz)
+    def poziv_ili_pridruživanje(p, ime) -> 'Poziv|Pridruživanje':
+        if p >= T.PRIDRUŽI:
+            izraz = p.izraz()
+            p >> T.TOČKAZ
+            return Pridruživanje(ime, izraz)
+        else:
+            funkcija = p.funkcije[ime]
+            argumenti = p.argumenti(funkcija.parametri)
+            p >> T.TOČKAZ
+            return Poziv(funkcija, argumenti)
 
     def grananje(p) -> 'Grananje':
         provjera = p.izraz()
@@ -101,9 +107,9 @@ class P(Parser):
             exit("Sintaktička greška")
 
     def printanje(p) -> 'Printanje':
-        if p >= T.NEWLINE:
+        if newline := p >= T.NEWLINE:
             p >> T.TOČKAZ
-            return Printanje(T.NEWLINE)
+            return Printanje(newline)
         elif string := p >= T.STRING:
             p >> T.TOČKAZ
             return Printanje(string)
@@ -114,13 +120,11 @@ class P(Parser):
 
     def definiranje(p) -> 'Funkcija':
         ime = p >> T.IME
-        p >> T.OTV
+        p.imef = ime
         parametri = p.parametri()
-        p >> T.ZATV
+        p.parametrif = parametri
         tijelo = p.naredbe(T.ENDDEF, pojedi=True)
         fja = Funkcija(ime, parametri, tijelo)
-        p.imef = ime
-        p.parametrif = parametri
         p.funkcije[ime] = fja
         return fja
 
@@ -128,9 +132,9 @@ class P(Parser):
         if p > T.TOČKAZ:
             return Vraćanje(nenavedeno)
         else:
-            vratiti = p.izraz()
+            izraz = p.izraz()
             p >> T.TOČKAZ
-            return vratiti
+            return Vraćanje(izraz)
 
     def izraz(p):
         stablo = p.član()
@@ -151,8 +155,8 @@ class P(Parser):
             izraz = p.izraz()
             p >> T.ZATV
             return izraz
-        elif p >= T.MINUS:
-            return Infix(T.MINUS, 0, p.faktor())
+        elif minus := p >= T.MINUS:
+            return Infix(minus, 0, p.faktor())
         elif broj := p >= T.BROJ:
             return broj
         else:
@@ -169,23 +173,33 @@ class P(Parser):
             return ime
 
     def parametri(p):
+        p >> T.OTV
         parametri = [p >> T.IME]
         while p >= T.ZAREZ:
             parametri.append(p >> T.IME)
+        p >> T.ZATV
         return parametri
 
-    def argumenti(p):
-        izrazi = [p.izraz()]
-        while p >= T.ZAREZ:
+    def argumenti(p, parametri):
+        broj_parametara = len(parametri)
+        izrazi = []
+        p >> T.OTV
+        for i in range(broj_parametara):
             izrazi.append(p.izraz())
+            if i < broj_parametara - 1:
+                p >> T.ZAREZ
+        p >> T.ZATV
         return izrazi
 
 
 def test(src):
-    snail(src)
-    prikaz(kod := P(src), 8)
+    # snail(src)
+    prikaz(program := P(src), 8)
+    print()
+    print('=== pokretanje ===')
+    program.izvrši()
 
 
 if __name__ == "__main__":
     from util import test_on
-    test_on(test, path=get_test_dir())
+    test_on(test)

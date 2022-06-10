@@ -1,22 +1,29 @@
 from vepar import *
 
-from util import get_test_dir
+from util import *
 
 
 class T(TipoviTokena):
-    IF, THEN, ELSE, ENDIF, PRINT, NEWLINE, DEF, ENDDEF, RETURN = 'if', 'then', 'else', 'endif', 'print', 'newline', 'def', 'enddef', 'return'
+    IF, THEN, ELSE, ENDIF, PRINT, NEWLINE, DEF, ENDDEF, RETURN =\
+        'if', 'then', 'else', 'endif', 'print', 'newline', 'def', 'enddef', 'return'
     PLUS, MINUS, PUTA, DIV = '+-*/'
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO = '<', '>', '<=', '>=', '==', '!='
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
 
     class BROJ(Token):
-        def vrijednost(self): return int(self.sadržaj)
+        def vrijednost(self, mem, unutar):
+            return int(self.sadržaj)
 
     class STRING(Token):
-        def vrijednost(self): return self.sadržaj.strip('"')
+        def vrijednost(self, mem, unutar):
+            return self.sadržaj.strip('"')
 
     class IME(Token):
-        def vrijednost(self): return rt.mem[self]
+        def vrijednost(self, mem, unutar):
+            if self in mem:
+                return mem[self]
+            else:
+                return rt.mem[self]
 
 
 @lexer
@@ -58,7 +65,7 @@ def snail(lex):
 
 if __name__ == "__main__":
     from util import test_on
-    test_on(snail, path=get_test_dir())
+    test_on(snail)
 
 # prikaz(F := P(ulaz))
 # prikaz(F := F.optim())
