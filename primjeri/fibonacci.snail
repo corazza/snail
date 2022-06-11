@@ -1,4 +1,4 @@
-def fib(n) // vrati n-ti fibonaccijev br.
+def fib(n: int) -> int as // vrati n-ti fibonaccijev br.
     if n == 1 then
         return 0;
     endif
@@ -10,7 +10,7 @@ def fib(n) // vrati n-ti fibonaccijev br.
     return fib(n-1) + fib(n-2);
 enddef
 
-def prvih_n_fib(n)
+def prvih_n_fib(n: int) -> unit as
     if n == 0 then
         return;
     endif /* test
@@ -22,7 +22,7 @@ def prvih_n_fib(n)
     prvih_n_fib(n-1);
     print(fib(/* testiraj tu */n));
     print " "; /* opet test*/
-    return 0;
+    return;
 enddef
 
 print "unesite n: ";

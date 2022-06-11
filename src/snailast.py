@@ -23,12 +23,34 @@ class Naredbe(AST):
             naredba.izvrši(mem, unutar)
 
 
+class Definiranje(AST):
+    ime: 'IME'  # TODO provjeri sve ove deklaracije
+    tip: 'T'
+    izraz: 'izraz'
+
+    def izvrši(self, mem, unutar):
+        (vrijednost, tip) = self.izraz.vrijednost(mem, unutar)
+        if tip is not self.tip:
+            raise SemantičkaGreška('tipovi se ne podudaraju')
+        mem[self.ime] = (vrijednost, tip)
+
+
 class Pridruživanje(AST):
     ime: 'IME'
     izraz: 'izraz'
 
-    def izvrši(self, mem, unutar):
-        mem[self.ime] = self.izraz.vrijednost(mem, unutar)
+    def izvrši(self, mem, unutar):  # TODO provjera tipa
+        if self not in mem:
+            raise SemantičkaGreška(
+                f'korištenje {self.ime} prije definiranja (let {self.ime}: TIP = IZRAZ;)')
+
+        (vrijednost, tip) = mem[self.ime]
+        (vrijednost2, tip2) = self.izraz.vrijednost(mem, unutar)
+
+        if tip is not tip2:
+            raise SemantičkaGreška(f'{self.ime} je tipa {tip} a izraz {tip2}')
+
+        mem[self.ime] = (vrijednost2, tip2)
 
 
 class Printanje(AST):
@@ -38,14 +60,14 @@ class Printanje(AST):
         if self.sadržaj ^ T.NEWLINE:
             print()
         else:
-            print(self.sadržaj.vrijednost(mem, unutar), end='')
+            print(self.sadržaj.vrijednost(mem, unutar)[0], end='')
 
 
 class Unos(AST):
     ime: 'IME'
 
     def izvrši(self, mem, unutar):
-        mem[self.ime] = int(input())
+        mem[self.ime] = (int(input()), Token(T.INT))
 
 
 class Grananje(AST):
@@ -54,7 +76,12 @@ class Grananje(AST):
     inače: '(naredba+)?'
 
     def izvrši(self, mem, unutar):
-        if self.provjera.vrijednost(mem, unutar) != 0:
+        (vrijednost, tip) = self.provjera.vrijednost(mem, unutar)
+
+        if not tip ^ T.BOOL:
+            raise SemantičkaGreška(f'provjera mora biti tipa {T.BOOL}')
+
+        if vrijednost:
             return self.ako.izvrši(mem, unutar)
         elif self.inače:
             return self.inače.izvrši(mem, unutar)
@@ -67,30 +94,61 @@ class Infix(AST):
 
     def vrijednost(self, mem, unutar):
         op = self.operator
-        lijevi = self.lijevi.vrijednost(mem, unutar)
-        desni = self.desni.vrijednost(mem, unutar)
+        (lijevi, lijevi_tip) = self.lijevi.vrijednost(mem, unutar)
+        (desni, desni_tip) = self.desni.vrijednost(mem, unutar)
+
         if op ^ T.PLUS:
-            return lijevi + desni
+            if not (lijevi_tip ^ T.INT and desni_tip ^ T.INT):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.INT}')
+            return (lijevi + desni, lijevi_tip)
         elif op ^ T.MINUS:
-            return lijevi - desni
+            if not (lijevi_tip ^ T.INT and desni_tip ^ T.INT):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.INT}')
+            return (lijevi - desni, lijevi_tip)
         elif op ^ T.PUTA:
-            return lijevi * desni
+            if not (lijevi_tip ^ T.INT and desni_tip ^ T.INT):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.INT}')
+            return (lijevi * desni, lijevi_tip)
         elif op ^ T.DIV:
+            if not (lijevi_tip ^ T.INT and desni_tip ^ T.INT):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.INT}')
             if desni == 0:
                 raise SemantičkaGreška('dijeljenje s 0')
-            return lijevi / desni
+            return (lijevi / desni, lijevi_tip)
         elif op ^ T.MANJE:
-            return 1 if lijevi < desni else 0
+            if not (lijevi_tip ^ T.INT and desni_tip ^ T.INT):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.INT}')
+            return (1 if lijevi < desni else 0, Token(T.BOOL))
         elif op ^ T.JMANJE:
-            return 1 if lijevi <= desni else 0
+            if not (lijevi_tip ^ T.INT and desni_tip ^ T.INT):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.INT}')
+            return (1 if lijevi <= desni else 0, Token(T.BOOL))
         elif op ^ T.VECE:
-            return 1 if lijevi > desni else 0
+            if not (lijevi_tip ^ T.INT and desni_tip ^ T.INT):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.INT}')
+            return (1 if lijevi > desni else 0, Token(T.BOOL))
         elif op ^ T.JVECE:
-            return 1 if lijevi >= desni else 0
+            if not (lijevi_tip ^ T.INT and desni_tip ^ T.INT):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.INT}')
+            return (1 if lijevi >= desni else 0, Token(T.BOOL))
         elif op ^ T.JEDNAKO:
-            return 1 if lijevi == desni else 0
+            if lijevi_tip != desni_tip:
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti istog tipa {lijevi_tip}')
+            return (1 if lijevi == desni else 0, Token(T.BOOL))
         elif op ^ T.NEJEDNAKO:
-            return 1 if lijevi != desni else 0
+            if lijevi_tip != desni_tip:
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti istog tipa {lijevi_tip}')
+            return (1 if lijevi != desni else 0, Token(T.BOOL))
         else:
             raise SemantičkaGreška(f'nepoznat operator {op}')
 
@@ -100,8 +158,8 @@ class Funkcija(AST):
     parametri: 'IME*'
     tijelo: 'naredba*'
 
-    def pozovi(funkcija, argumenti):
-        lokalni = Memorija(zip(funkcija.parametri, argumenti))
+    def pozovi(funkcija, mem, unutar, argumenti):
+        lokalni = Memorija(zip([p.ime for p in funkcija.parametri], argumenti))
         try:
             funkcija.tijelo.izvrši(mem=lokalni, unutar=funkcija)
         except Povratak as exc:
@@ -113,20 +171,6 @@ class Funkcija(AST):
         """Definicije se ne izvršavaju u runtimeu."""
 
 
-class Vraćanje(AST):
-    izraz: 'izraz?'
-
-    def izvrši(self, mem, unutar):
-        if self.izraz is nenavedeno:
-            raise Povratak()
-        else:
-            raise Povratak(self.izraz.vrijednost(mem, unutar))
-
-
-class Povratak(NelokalnaKontrolaToka):
-    pass
-
-
 class Poziv(AST):
     funkcija: 'Funkcija?'
     argumenti: 'izraz*'
@@ -136,7 +180,10 @@ class Poziv(AST):
         if pozvana is nenavedeno:
             pozvana = unutar  # rekurzivni poziv
         argumenti = [a.vrijednost(mem, unutar) for a in poziv.argumenti]
-        return pozvana.pozovi(argumenti)
+        for (p, a) in zip(pozvana.parametri, argumenti):
+            if p.tip != a[1]:
+                raise SemantičkaGreška(f'očekivan tip {p.tip}, a dan {a[1]}')
+        return pozvana.pozovi(mem, unutar, argumenti)
 
     def izvrši(poziv, mem, unutar):
         poziv.vrijednost(mem, unutar)
@@ -148,3 +195,27 @@ class Poziv(AST):
         else:
             r['*ime'] = poziv.funkcija.ime
         return r
+
+
+class Vraćanje(AST):
+    izraz: 'izraz?'
+    tip: 'T'
+
+    def izvrši(self, mem, unutar):
+        if self.izraz is nenavedeno:
+            raise Povratak()
+        else:
+            (vrijednost, tip) = self.izraz.vrijednost(mem, unutar)
+            if self.tip != tip:
+                raise SemantičkaGreška(
+                    f'povratni tip bi trebao biti {self.tip}, dan je {tip}')
+            raise Povratak((vrijednost, tip))
+
+
+class Tipizirano(AST):
+    ime: 'IME'
+    tip: 'tip'
+
+
+class Povratak(NelokalnaKontrolaToka):
+    pass

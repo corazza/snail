@@ -4,12 +4,16 @@
 # naredbe -> naredbe naredba | naredba
 #
 # naredba   -> pridruživanje
+#            | definiranje
 #            | printanje
 #            | grananje
-#            | definiranje
+#            | funkcija
 #            | vraćanje
 #            | INPUT IME#
 #            | IME# poziv
+#
+# definiranje -> LET tipizirano JEDNAKO izraz TOČKAZ
+# tipizirano -> IME# OFTYPE tip
 #
 # pridruživanje -> IME# JEDNAKO izraz TOČKAZ
 #
@@ -23,7 +27,8 @@
 # vraćanje  -> VRATI TOČKAZ
 #            | VRATI izraz TOČKAZ
 #
-# definiranje -> DEF ime OTV parametri ZATV naredbe ENDDEF
+# funkcija -> DEF ime OTV parametri ZATV FTYPE tip AS naredbe ENDDEF
+# tip -> INT | BOOL | STRINGT | UNIT
 # parametri -> ime | parametri ZAREZ ime
 #
 # izraz -> član
@@ -50,6 +55,7 @@
 # argumenti -> izraz | argumenti ZAREZ izraz
 
 from inspect import Parameter
+from signal import default_int_handler
 from vepar import *
 
 from lekser import *
@@ -61,6 +67,7 @@ class P(Parser):
     def start(p) -> 'Program':
         p.imef = None
         p.parametrif = None
+        p.tipf = None
         p.funkcije = Memorija(redefinicija=False)
         return Program(p.naredbe(KRAJ))
 
@@ -82,6 +89,8 @@ class P(Parser):
         elif p >= T.IF:
             return p.grananje()
         elif p >= T.DEF:
+            return p.funkcija()
+        elif p >= T.LET:
             return p.definiranje()
         elif p >> T.RETURN:
             return p.vraćanje()
@@ -128,28 +137,59 @@ class P(Parser):
             p >> T.TOČKAZ
             return Printanje(izraz)
 
+    def definiranje(p) -> 'Definiranje':
+        tipizirano = p.tipizirano()
+        p >> T.PRIDRUŽI
+        izraz = p.izraz()
+        p >> T.TOČKAZ
+        return Definiranje(tipizirano.ime, tipizirano.tip, izraz)
+
     def input(p) -> 'Input':
         ime = p >> T.IME
         p >> T.TOČKAZ
         return Unos(ime)
 
-    def definiranje(p) -> 'Funkcija':
+    def funkcija(p) -> 'Funkcija':
+        staro_imef = p.imef
+        stari_parametrif = p.parametrif
+        stari_tipf = p.tipf
+
         ime = p >> T.IME
         p.imef = ime
         parametri = p.parametri()
         p.parametrif = parametri
+        p >> T.FTYPE
+        tip = p.tip()
+        p.tipf = tip
+        p >> T.AS
         tijelo = p.naredbe(T.ENDDEF, pojedi=True)
         fja = Funkcija(ime, parametri, tijelo)
         p.funkcije[ime] = fja
+
+        p.imef = staro_imef
+        p.parametrif = stari_parametrif
+        p.tipf = stari_tipf
+
         return fja
 
     def vraćanje(p):
         if p >= T.TOČKAZ:
-            return Vraćanje(nenavedeno)
+            if not p.tipf ^ T.UNIT:
+                raise SemantičkaGreška(f'povratni tip bi trebao biti {p.tipf}')
+            return Vraćanje(nenavedeno, p.tipf)
         else:
             izraz = p.izraz()
             p >> T.TOČKAZ
-            return Vraćanje(izraz)
+            return Vraćanje(izraz, p.tipf)
+
+    def tipizirano(p) -> 'Tipizirano':
+        ime = p >> T.IME
+        p >> T.OFTYPE
+        tip = p.tip()
+        return Tipizirano(ime, tip)
+
+    def tip(p) -> 'tip':
+        return p >> {T.INT, T.BOOL, T.STRINGT, T.UNIT}
 
     def izraz(p):
         stablo = p.član()
@@ -187,11 +227,11 @@ class P(Parser):
         else:
             return ime
 
-    def parametri(p):
+    def parametri(p) -> 'tipizirano*':
         p >> T.OTV
-        parametri = [p >> T.IME]
+        parametri = [p.tipizirano()]
         while p >= T.ZAREZ:
-            parametri.append(p >> T.IME)
+            parametri.append(p.tipizirano())
         p >> T.ZATV
         return parametri
 

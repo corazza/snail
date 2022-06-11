@@ -4,19 +4,21 @@ from util import *
 
 
 class T(TipoviTokena):
-    IF, THEN, ELSE, ENDIF, PRINT, INPUT, NEWLINE, DEF, ENDDEF, RETURN =\
-        'if', 'then', 'else', 'endif', 'print', 'input', 'newline', 'def', 'enddef', 'return'
+    IF, THEN, ELSE, ENDIF, PRINT, INPUT, NEWLINE, DEF, AS, ENDDEF, RETURN =\
+        'if', 'then', 'else', 'endif', 'print', 'input', 'newline', 'def', 'as', 'enddef', 'return'
     PLUS, MINUS, PUTA, DIV = '+-*/'
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO = '<', '>', '<=', '>=', '==', '!='
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
+    LET, OFTYPE, FTYPE = 'let', ':', '->'
+    INT, BOOL, STRINGT, UNIT = 'int', 'bool', 'string', 'unit'
 
     class BROJ(Token):
         def vrijednost(self, mem, unutar):
-            return int(self.sadržaj)
+            return (int(self.sadržaj), Token(T.INT))
 
     class STRING(Token):
         def vrijednost(self, mem, unutar):
-            return self.sadržaj.strip('"')
+            return (self.sadržaj.strip('"'), Token(T.STRINGT))
 
     class IME(Token):
         def vrijednost(self, mem, unutar):
@@ -50,6 +52,8 @@ def snail(lex):
                 lex.zanemari()
             else:
                 yield lex.literal(T)
+        elif znak == '-':
+            yield lex.token(T.FTYPE if lex >= '>' else T.MINUS)
         elif znak == '"':
             lex <= '"'
             yield lex.token(T.STRING)
