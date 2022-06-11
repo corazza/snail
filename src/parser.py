@@ -163,7 +163,7 @@ class P(Parser):
         p.tipf = tip
         p >> T.AS
         tijelo = p.naredbe(T.ENDDEF, pojedi=True)
-        fja = Funkcija(ime, parametri, tijelo)
+        fja = Funkcija(ime, tip, parametri, tijelo)
         p.funkcije[ime] = fja
 
         p.imef = staro_imef
@@ -174,13 +174,11 @@ class P(Parser):
 
     def vraćanje(p):
         if p >= T.TOČKAZ:
-            if not p.tipf ^ T.UNIT:
-                raise SemantičkaGreška(f'povratni tip bi trebao biti {p.tipf}')
-            return Vraćanje(nenavedeno, p.tipf)
+            return Vraćanje(nenavedeno)
         else:
             izraz = p.izraz()
             p >> T.TOČKAZ
-            return Vraćanje(izraz, p.tipf)
+            return Vraćanje(izraz)
 
     def tipizirano(p) -> 'Tipizirano':
         ime = p >> T.IME

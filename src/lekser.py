@@ -13,14 +13,23 @@ class T(TipoviTokena):
     INT, BOOL, STRINGT, UNIT = 'int', 'bool', 'string', 'unit'
 
     class BROJ(Token):
+        def typecheck(self, scope, unutar):
+            return self
+
         def vrijednost(self, mem, unutar):
-            return (int(self.sadržaj), Token(T.INT))
+            return int(self.sadržaj)
 
     class STRING(Token):
+        def typecheck(self, scope, unutar):
+            return self
+
         def vrijednost(self, mem, unutar):
-            return (self.sadržaj.strip('"'), Token(T.STRINGT))
+            return self.sadržaj.strip('"')
 
     class IME(Token):
+        def typecheck(self, scope, unutar):
+            return scope[self]
+
         def vrijednost(self, mem, unutar):
             if self in mem:
                 return mem[self]
