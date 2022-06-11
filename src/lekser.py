@@ -8,10 +8,10 @@ class T(TipoviTokena):
         'if', 'then', 'else', 'endif', 'print', 'input', 'newline', 'def', 'as', 'enddef', 'return'
     DATA, ENDDATA, MATCH, ENDMATCH = 'data', 'enddata', 'match', 'endmatch'
     PLUS, MINUS, PUTA, DIV = '+-*/'
-    MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO = '<', '>', '<=', '>=', '==', '!='
+    MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO, SLIJEDI = '<', '>', '<=', '>=', '==', '!=', '=>'
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
     LET, OFTYPE, FTYPE = 'let', ':', '->'
-    INT, BOOL, STRINGT, UNIT = 'int', 'bool', 'string', 'unit'
+    INT, BOOL, STRINGT, UNITT = 'int', 'bool', 'string', 'unit'
 
     class BROJ(Token):
         def typecheck(self, scope, unutar):
@@ -37,7 +37,7 @@ class T(TipoviTokena):
             else:
                 return rt.mem[self]
 
-    class IMETIPA(Token):
+    class VELIKOIME(Token):
         def typecheck(self, scope, unutar):
             raise SemantičkaGreška('tipovi nisu vrijednosti')
 
@@ -61,7 +61,12 @@ def snail(lex):
         elif znak == '>':
             yield lex.token(T.JVECE if lex >= '=' else T.VECE)
         elif znak == '=':
-            yield lex.token(T.JEDNAKO if lex >= '=' else T.PRIDRUŽI)
+            if lex >= '=':
+                yield lex.token(T.JEDNAKO)
+            elif lex >= '>':
+                yield lex.token(T.SLIJEDI)
+            else:
+                yield lex.token(T.PRIDRUŽI)
         elif znak == '/':
             if lex > '/':
                 lex <= '\n'
@@ -82,9 +87,9 @@ def snail(lex):
             yield lex.token(T.STRING)
         elif znak.isalpha() or znak == '_':
             if znak.isupper():
-                if lex > isalpha:
+                if lex > str.isalpha:
                     lex * {str.isalnum, '_'}    
-                    yield lex.token(T.IMETIPA)
+                    yield lex.token(T.VELIKOIME)
                 else:
                     lex * {str.isalnum, '_'}    
                     yield lex.token(T.VARTIPA)

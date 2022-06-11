@@ -7,6 +7,7 @@ from vepar import *
 from lekser import *
 from scope import *
 
+
 class Program(AST):
     naredbe: 'naredbe'
 
@@ -29,6 +30,16 @@ class Naredbe(AST):
     def izvrši(self, mem, unutar):
         for naredba in self.naredbe:
             naredba.izvrši(mem, unutar)
+
+
+class Match(AST):
+    izraz: 'izraz'
+    varijante: 'Varijanta+'
+
+
+class Varijanta(AST):
+    ako: 'izraz'
+    onda: 'naredba'
 
 
 class Definiranje(AST):
@@ -60,7 +71,8 @@ class Pridruživanje(AST):
         pridruživanje_tip = self.izraz.typecheck(scope, unutar)
 
         if moj_tip != pridruživanje_tip:
-            raise SemantičkaGreška(f'{self.ime} je tipa {moj_tip} a izraz {pridruživanje_tip}')
+            raise SemantičkaGreška(
+                f'{self.ime} je tipa {moj_tip} a izraz {pridruživanje_tip}')
 
     def izvrši(self, mem, unutar):  # TODO provjera tipa
         if self.ime not in mem:
@@ -115,11 +127,26 @@ class Grananje(AST):
             return self.inače.izvrši(mem, unutar)
 
 
+class SloženiTip(AST):
+    ime: 'VELIKOIME'
+    parametri: 'tip*'
+
+
+class Data(AST):
+    ime: 'IME'
+    parametri: 'IME*'
+    konstruktori: 'konstruktor*'
+
+
+class Konstruktor(AST):
+    ime: 'IME'
+    parametri: 'tip*'
+
+
 class Infix(AST):
     operator: 'PLUS|MINUS|...'
     lijevi: 'faktor|član|Infix'  # TODO provjeri ima li ova deklaracija smisla
     desni: 'faktor|član|Infix'
-
 
     def typecheck(self, scope, unutar):
         op = self.operator
@@ -129,7 +156,7 @@ class Infix(AST):
         if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV, T.MANJE, T.JMANJE, T.VECE, T.JVECE}:
             if not (lijevi_tip ^ T.INT and desni_tip ^ T.INT):
                 raise SemantičkaGreška(
-                    f'oba operanda moraju biti tipa {T.INT}')            
+                    f'oba operanda moraju biti tipa {T.INT}')
         elif op ^ {T.JEDNAKO, T.NEJEDNAKO}:
             if lijevi_tip != desni_tip:
                 raise SemantičkaGreška(
@@ -169,13 +196,6 @@ class Infix(AST):
         else:
             raise SemantičkaGreška(f'nepoznat operator {op}')
 
-class Tip(AST):
-    ime: 'IME'
-    parametri: 'IME*'
-    varijante: 'varijanta*'
-
-class Varijanta(AST):
-    ime: 'IME'
 
 class Funkcija(AST):
     ime: 'IME'
@@ -244,7 +264,6 @@ class Vraćanje(AST):
             raise SemantičkaGreška(
                 f'povratni tip bi trebao biti {self.tip}, dan je {tip}')
 
-
     def izvrši(self, mem, unutar):
         if self.izraz is nenavedeno:
             raise Povratak()
@@ -260,3 +279,11 @@ class Tipizirano(AST):
 
 class Povratak(NelokalnaKontrolaToka):
     pass
+
+
+class UnitValue(AST):
+    def typecheck(self, scope, unutar):
+        return Token(T.UNITT)
+
+    def vrijednost(self, mem, unutar):
+        return self

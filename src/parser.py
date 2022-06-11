@@ -1,5 +1,5 @@
 # TODO provjeriti i urediti BKG
-## BKG za našu Snail implementaciju
+# BKG za našu Snail implementaciju
 #
 # start -> naredbe
 # naredbe -> naredbe naredba | naredba
@@ -11,18 +11,26 @@
 #            | grananje
 #            | funkcija
 #            | vraćanje
+#            | match
 #            | INPUT IME#
 #            | IME# poziv
 #
-# definiranje_tipa -> DATA IME# MANJE parametri_tipa VECE AS varijante ENDDATA
+# definiranje_tipa -> DATA VELIKOIME# MANJE parametri_tipa VECE AS konstruktori ENDDATA
+#                   | DATA VELIKOIME# AS konstruktori ENDDATA
 # parametri_tipa -> VARTIPA# | parametri_tipa ZAREZ VARTIPA#
-# varijante -> varijanta | varijante ZAREZ varijanta
-# varijanta -> IME# | OTV članovi_varijante ZATV
-# članovi_varijante -> IME# | članovi_varijante ZAREZ tip
-# tip -> INT | BOOL | STRINGT | UNIT | IMETIPA#
+# konstruktori -> konstruktor | konstruktori ZAREZ konstruktor
+# konstruktor -> VELIKOIME# | OTV članovi_konstruktori ZATV
+# članovi_konstruktori -> tip | članovi_konstruktori ZAREZ tip
+# tip -> INT | BOOL | STRINGT | UNITT | VELIKOIME# | VARTIPA#
 #
 # definiranje -> LET tipizirano JEDNAKO izraz TOČKAZ
 # tipizirano -> IME# OFTYPE tip
+#
+# match -> MATCH izraz AS varijante ENDMATCH
+# varijante -> varijanta | varijante ZAREZ varijanta
+# varijanta -> VELIKOIME# poziv NAPRIJED naredba
+# poziv -> OTV ZATV | OTV argumenti ZATV
+# argumenti -> izraz | argumenti ZAREZ izraz
 #
 # pridruživanje -> IME# JEDNAKO izraz TOČKAZ
 #
@@ -59,8 +67,6 @@
 #            | OTV izraz ZATV
 #            | MINUS faktor
 #
-# poziv -> OTV ZATV | OTV argumenti ZATV
-# argumenti -> izraz | argumenti ZAREZ izraz
 
 from inspect import Parameter
 from signal import default_int_handler
@@ -87,28 +93,61 @@ class P(Parser):
             p >> until
         return Naredbe(naredbe)
 
-    def naredba(p) -> 'pridruživanje|printanje|grananje':
+    # TODO naredbe u dvije kategorije, one koje završavaju na end_, i one koje imaju delimiter (?)
+    def naredba(p, read_delim=True) -> 'pridruživanje|printanje|grananje':
         if ime := p >= T.IME:
-            return p.poziv_ili_pridruživanje(ime)
+            poziv = p.poziv_ili_pridruživanje(ime)
+            if read_delim:
+                p >> T.TOČKAZ
+            return poziv
         elif p >= T.PRINT:
-            return p.printanje()
+            printanje = p.printanje()
+            if read_delim:
+                p >> T.TOČKAZ
+            return printanje
         elif p >= T.INPUT:
-            return p.input()
+            input = p.input()
+            if read_delim:
+                p >> T.TOČKAZ
+            return input
         elif p >= T.IF:
             return p.grananje()
         elif p >= T.DEF:
             return p.funkcija()
         elif p >= T.LET:
-            return p.definiranje()
+            let = p.definiranje()
+            if read_delim:
+                p >> T.TOČKAZ
+            return let
         elif p >= T.DATA:
             return p.definiranje_tipa()
+        elif p >= T.MATCH:
+            return p.match()
         elif p >> T.RETURN:
-            return p.vraćanje()
+            vraćanje = p.vraćanje()
+            if read_delim:
+                p >> T.TOČKAZ
+            return vraćanje
+        
+    def match(p) -> 'Match':
+        izraz = p.izraz()
+        p >> T.AS
+        varijante = [p.varijanta()]
+        while p >= T.ZAREZ:
+            varijante.append(p.varijanta())
+        p >> T.ENDMATCH
+        return Match(izraz, varijante)
+
+    def varijanta(p) -> 'Varijanta':
+        izraz = p.izraz()
+        p >> T.SLIJEDI
+        naredba = p.naredba(read_delim=False)
+        return Varijanta(izraz, naredba)
 
     def poziv_ili_pridruživanje(p, ime) -> 'Poziv|Pridruživanje':
         if p >= T.PRIDRUŽI:
             izraz = p.izraz()
-            p >> T.TOČKAZ
+            # p >> T.TOČKAZ
             return Pridruživanje(ime, izraz)
         else:
             if ime in p.funkcije:
@@ -120,7 +159,7 @@ class P(Parser):
             else:
                 raise SintaksnaGreška('nepoznata funkcija')
             argumenti = p.argumenti(parametri)
-            p >> T.TOČKAZ
+            # p >> T.TOČKAZ
             return Poziv(funkcija, argumenti)
 
     def grananje(p) -> 'Grananje':
@@ -137,35 +176,84 @@ class P(Parser):
 
     def printanje(p) -> 'Printanje':
         if newline := p >= T.NEWLINE:
-            p >> T.TOČKAZ
+            # p >> T.TOČKAZ
             return Printanje(newline)
         elif string := p >= T.STRING:
-            p >> T.TOČKAZ
+            # p >> T.TOČKAZ
             return Printanje(string)
         else:
             izraz = p.izraz()
-            p >> T.TOČKAZ
+            # p >> T.TOČKAZ
             return Printanje(izraz)
 
     def definiranje(p) -> 'Definiranje':
         tipizirano = p.tipizirano()
         p >> T.PRIDRUŽI
         izraz = p.izraz()
-        p >> T.TOČKAZ
+        # p >> T.TOČKAZ
         return Definiranje(tipizirano.ime, tipizirano.tip, izraz)
 
     def input(p) -> 'Input':
         ime = p >> T.IME
-        p >> T.TOČKAZ
+        # p >> T.TOČKAZ
         return Unos(ime)
 
-    def definiranje_tipa(p) -> 'Tip':
-        ime = p >> T.IME
-        parametri_tipa = p.parametri_tipa()
+    def definiranje_tipa(p) -> 'Data':
+        ime = p >> T.VELIKOIME
+        if p >> T.MANJE:
+            parametri = p.parametri_tipa()
+            p >> T.VECE
+        else:
+            parametri = []
         p >> T.AS
-        članovi = p.članovi_tipa()
+        konstruktori = p.konstruktori()
         p >> T.ENDDATA
-        return 
+        return Data(ime, parametri, konstruktori)
+
+    def parametri_tipa(p) -> '(VARTIPA#)+':
+        parametri = [p >> T.VARTIPA]
+        while p >= T.ZAREZ:
+            parametri.append(p >= T.VARTIPA)
+        return parametri
+
+    def konstruktori(p) -> 'Konstruktor+':
+        konstruktori_tipa = [p.konstruktor()]
+        while p >= T.ZAREZ:
+            konstruktori_tipa.append(p.konstruktor())
+        return konstruktori_tipa
+
+    def konstruktor(p) -> 'Konstruktor':
+        ime = p >> T.VELIKOIME
+        if p >= T.OTV:
+            članovi = p.članovi_konstruktora()
+            p >> T.ZATV
+        else:
+            članovi = []
+        konstruktor = Konstruktor(ime, članovi)
+        p.funkcije[ime] = konstruktor
+        return konstruktor
+
+    def članovi_konstruktora(p) -> 'tip+':
+        tipovi = [p.tip()]
+        while p >= T.ZAREZ:  # TODO koristi ili_samo
+            tipovi.append(p.tip())
+        return tipovi
+
+    def tip(p) -> 'tip|VARTIPA#|SloženiTip':
+        if elementarni := p >= {T.INT, T.BOOL, T.STRINGT, T.UNITT}:
+            return elementarni
+        elif vartipa := p >= T.VARTIPA:
+            return vartipa
+        else:
+            ime = p >> T.VELIKOIME # TODO apstrahiraj pattern (npr. i u parametri_tipa)
+            if p >= T.MANJE:
+                parametri = [p.tip()]
+                while p >= T.ZAREZ:
+                    parametri.append(p.tip())
+                p >> T.VECE
+            else:
+                parametri = []
+            return SloženiTip(ime, parametri)
 
     def funkcija(p) -> 'Funkcija':
         staro_imef = p.imef
@@ -191,21 +279,19 @@ class P(Parser):
         return fja
 
     def vraćanje(p):
-        if p >= T.TOČKAZ:
-            return Vraćanje(nenavedeno)
-        else:
-            izraz = p.izraz()
-            p >> T.TOČKAZ
-            return Vraćanje(izraz)
+        # if p >= T.TOČKAZ:
+        #     return Vraćanje(nenavedeno)
+        # else:
+        #     izraz = p.izraz()
+        #     p >> T.TOČKAZ
+        #     return Vraćanje(izraz)
+        return Vraćanje(p.izraz())
 
     def tipizirano(p) -> 'Tipizirano':
         ime = p >> T.IME
         p >> T.OFTYPE
         tip = p.tip()
         return Tipizirano(ime, tip)
-
-    def tip(p) -> 'tip':
-        return p >> {T.INT, T.BOOL, T.STRINGT, T.UNIT}
 
     def izraz(p):
         stablo = p.član()
@@ -223,21 +309,30 @@ class P(Parser):
 
     def faktor(p):
         if p >= T.OTV:
-            izraz = p.izraz()
-            p >> T.ZATV
-            return izraz
+            if p >= T.ZATV:
+                return UnitValue()
+            else:
+                izraz = p.izraz()
+                p >> T.ZATV
+                return izraz
         elif minus := p >= T.MINUS:
             return Infix(minus, 0, p.faktor())
         elif broj := p >= T.BROJ:
             return broj
         else:
-            ime = p >> T.IME
+            ime = p >> {T.IME, T.VELIKOIME}
             return p.možda_poziv(ime)
 
-    def možda_poziv(p, ime) -> 'Poziv|IME':
-        if ime in p.funkcije:
+    def možda_poziv(p, ime) -> 'Poziv|IME|VELIKOIME':
+        if ime in p.funkcije and ime ^ T.IME: # (T.VELIKOIME treba posebnu shemu)
             funkcija = p.funkcije[ime]
             return Poziv(funkcija, p.argumenti(funkcija.parametri))
+        elif ime in p.funkcije and ime ^ T.VELIKOIME:
+            konstruktor = p.funkcije[ime]
+            if len(konstruktor.parametri) > 0:
+                return Poziv(konstruktor, p.argumenti(konstruktor.parametri))
+            else:
+                return konstruktor
         elif ime == p.imef:
             return Poziv(nenavedeno, p.argumenti(p.parametrif))
         else:
@@ -265,7 +360,6 @@ class P(Parser):
 
 def test(src):
     prikaz(program := P(src), 8)
-    print()
     print('=== pokretanje ===')
     program.izvrši()
 

@@ -10,7 +10,10 @@ enddata
 
 def head(xs: List<A>) -> Option<A> as
     match x as
-        Nil => return None;
-        Concat(x, x::xs) => return Some(x);
+        Nil => return None,
+        Concat(x, tail) => return Some(x)
     endmatch
 enddef
+
+lista = Concat(1, Concat(2, Concat(3, Nil)));
+print head(lista);
