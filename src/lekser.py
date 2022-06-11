@@ -6,6 +6,7 @@ from util import *
 class T(TipoviTokena):
     IF, THEN, ELSE, ENDIF, PRINT, INPUT, NEWLINE, DEF, AS, ENDDEF, RETURN =\
         'if', 'then', 'else', 'endif', 'print', 'input', 'newline', 'def', 'as', 'enddef', 'return'
+    DATA, ENDDATA, MATCH, ENDMATCH = 'data', 'enddata', 'match', 'endmatch'
     PLUS, MINUS, PUTA, DIV = '+-*/'
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO = '<', '>', '<=', '>=', '==', '!='
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
@@ -36,6 +37,19 @@ class T(TipoviTokena):
             else:
                 return rt.mem[self]
 
+    class IMETIPA(Token):
+        def typecheck(self, scope, unutar):
+            raise SemantičkaGreška('tipovi nisu vrijednosti')
+
+        def vrijednost(self, mem, unutar):
+            raise SemantičkaGreška('tipovi nisu vrijednosti')
+
+    class VARTIPA(Token):
+        def typecheck(self, scope, unutar):
+            raise SemantičkaGreška('varijable tipova nisu vrijednosti')
+
+        def vrijednost(self, mem, unutar):
+            raise SemantičkaGreška('varijable tipova nisu vrijednosti')
 
 @lexer
 def snail(lex):
@@ -67,8 +81,16 @@ def snail(lex):
             lex <= '"'
             yield lex.token(T.STRING)
         elif znak.isalpha() or znak == '_':
-            lex * {str.isalnum, '_'}
-            yield lex.literal_ili(T.IME)
+            if znak.isupper():
+                if lex > isalpha:
+                    lex * {str.isalnum, '_'}    
+                    yield lex.token(T.IMETIPA)
+                else:
+                    lex * {str.isalnum, '_'}    
+                    yield lex.token(T.VARTIPA)
+            else:
+                lex * {str.isalnum, '_'}    
+                yield lex.literal_ili(T.IME)
         elif znak.isdecimal():
             lex.prirodni_broj(znak)
             yield lex.token(T.BROJ)

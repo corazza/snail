@@ -1,16 +1,25 @@
-# BKG za našu Snail implementaciju
+# TODO provjeriti i urediti BKG
+## BKG za našu Snail implementaciju
 #
 # start -> naredbe
 # naredbe -> naredbe naredba | naredba
 #
 # naredba   -> pridruživanje
 #            | definiranje
+#            | definiranje_tipa
 #            | printanje
 #            | grananje
 #            | funkcija
 #            | vraćanje
 #            | INPUT IME#
 #            | IME# poziv
+#
+# definiranje_tipa -> DATA IME# MANJE parametri_tipa VECE AS varijante ENDDATA
+# parametri_tipa -> VARTIPA# | parametri_tipa ZAREZ VARTIPA#
+# varijante -> varijanta | varijante ZAREZ varijanta
+# varijanta -> IME# | OTV članovi_varijante ZATV
+# članovi_varijante -> IME# | članovi_varijante ZAREZ tip
+# tip -> INT | BOOL | STRINGT | UNIT | IMETIPA#
 #
 # definiranje -> LET tipizirano JEDNAKO izraz TOČKAZ
 # tipizirano -> IME# OFTYPE tip
@@ -28,7 +37,6 @@
 #            | VRATI izraz TOČKAZ
 #
 # funkcija -> DEF ime OTV parametri ZATV FTYPE tip AS naredbe ENDDEF
-# tip -> INT | BOOL | STRINGT | UNIT
 # parametri -> ime | parametri ZAREZ ime
 #
 # izraz -> član
@@ -92,6 +100,8 @@ class P(Parser):
             return p.funkcija()
         elif p >= T.LET:
             return p.definiranje()
+        elif p >= T.DATA:
+            return p.definiranje_tipa()
         elif p >> T.RETURN:
             return p.vraćanje()
 
@@ -149,11 +159,19 @@ class P(Parser):
         p >> T.TOČKAZ
         return Unos(ime)
 
+    def definiranje_tipa(p) -> 'Tip':
+        ime = p >> T.IME
+        parametri_tipa = p.parametri_tipa()
+        p >> T.AS
+        članovi = p.članovi_tipa()
+        p >> T.ENDDATA
+        return 
+
     def funkcija(p) -> 'Funkcija':
         staro_imef = p.imef
         stari_parametrif = p.parametrif
         stari_tipf = p.tipf
-
+        # TODO istražiti: memorija u parseru je loša ideja, može li se ovo preseliti drugdje?
         ime = p >> T.IME
         p.imef = ime
         parametri = p.parametri()

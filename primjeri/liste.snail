@@ -1,0 +1,16 @@
+data List<A> as
+    Nil,
+    Concat(A, List<A>)
+enddata
+
+data Option<A> as
+    None,
+    Some(A)
+enddata
+
+def head(xs: List<A>) -> Option<A> as
+    match x as
+        Nil => return None;
+        Concat(x, x::xs) => return Some(x);
+    endmatch
+enddef

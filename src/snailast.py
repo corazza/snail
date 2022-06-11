@@ -169,6 +169,13 @@ class Infix(AST):
         else:
             raise SemantičkaGreška(f'nepoznat operator {op}')
 
+class Tip(AST):
+    ime: 'IME'
+    parametri: 'IME*'
+    varijante: 'varijanta*'
+
+class Varijanta(AST):
+    ime: 'IME'
 
 class Funkcija(AST):
     ime: 'IME'
