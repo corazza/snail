@@ -8,6 +8,7 @@
 #            | grananje
 #            | definiranje
 #            | vraćanje
+#            | INPUT IME#
 #            | IME# poziv
 #
 # pridruživanje -> IME# JEDNAKO izraz TOČKAZ
@@ -76,6 +77,8 @@ class P(Parser):
             return p.poziv_ili_pridruživanje(ime)
         elif p >= T.PRINT:
             return p.printanje()
+        elif p >= T.INPUT:
+            return p.input()
         elif p >= T.IF:
             return p.grananje()
         elif p >= T.DEF:
@@ -89,8 +92,15 @@ class P(Parser):
             p >> T.TOČKAZ
             return Pridruživanje(ime, izraz)
         else:
-            funkcija = p.funkcije[ime]
-            argumenti = p.argumenti(funkcija.parametri)
+            if ime in p.funkcije:
+                funkcija = p.funkcije[ime]
+                parametri = funkcija.parametri
+            elif ime == p.imef:
+                funkcija = nenavedeno
+                parametri = p.parametrif
+            else:
+                raise SintaksnaGreška('nepoznata funkcija')
+            argumenti = p.argumenti(parametri)
             p >> T.TOČKAZ
             return Poziv(funkcija, argumenti)
 
@@ -118,6 +128,11 @@ class P(Parser):
             p >> T.TOČKAZ
             return Printanje(izraz)
 
+    def input(p) -> 'Input':
+        ime = p >> T.IME
+        p >> T.TOČKAZ
+        return Unos(ime)
+
     def definiranje(p) -> 'Funkcija':
         ime = p >> T.IME
         p.imef = ime
@@ -129,7 +144,7 @@ class P(Parser):
         return fja
 
     def vraćanje(p):
-        if p > T.TOČKAZ:
+        if p >= T.TOČKAZ:
             return Vraćanje(nenavedeno)
         else:
             izraz = p.izraz()
@@ -193,7 +208,6 @@ class P(Parser):
 
 
 def test(src):
-    # snail(src)
     prikaz(program := P(src), 8)
     print()
     print('=== pokretanje ===')

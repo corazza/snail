@@ -1,0 +1,30 @@
+def fib(n) // vrati n-ti fibonaccijev br.
+    if n == 1 then
+        return 0;
+    endif
+
+    if n == 2 then
+        return 1;
+    endif
+
+    return fib(n-1) + fib(n-2);
+enddef
+
+def prvih_n_fib(n)
+    if n == 0 then
+        return;
+    endif /* test
+
+    viselinijskih
+    komentara
+    */
+
+    prvih_n_fib(n-1);
+    print(fib(/* testiraj tu */n));
+    print " "; /* opet test*/
+    return 0;
+enddef
+
+print "unesite n: ";
+input n;
+prvih_n_fib(n);

@@ -41,6 +41,13 @@ class Printanje(AST):
             print(self.sadržaj.vrijednost(mem, unutar), end='')
 
 
+class Unos(AST):
+    ime: 'IME'
+
+    def izvrši(self, mem, unutar):
+        mem[self.ime] = int(input())
+
+
 class Grananje(AST):
     provjera: 'izraz'
     ako: 'naredba+'
@@ -110,7 +117,10 @@ class Vraćanje(AST):
     izraz: 'izraz?'
 
     def izvrši(self, mem, unutar):
-        raise Povratak(self.izraz.vrijednost(mem, unutar))
+        if self.izraz is nenavedeno:
+            raise Povratak()
+        else:
+            raise Povratak(self.izraz.vrijednost(mem, unutar))
 
 
 class Povratak(NelokalnaKontrolaToka):
