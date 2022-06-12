@@ -8,12 +8,12 @@ data Option<A> as
     Some(A)
 enddata
 
-def head(xs: List<A>) -> Option<A> as
-    match x as
-        Nil => return None,
-        Concat(x, tail) => return Some(x)
+def head<B>(xs: List<B>) -> Option<B> as
+    match xs as
+        Concat(x, tail) => return Some(x),
+        Nil => return None
     endmatch
 enddef
 
-lista = Concat(1, Concat(2, Concat(3, Nil)));
+let lista: List<int> = Concat(1, Concat(2, Concat(3, Nil)));
 print head(lista);

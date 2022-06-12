@@ -15,14 +15,14 @@ class T(TipoviTokena):
 
     class BROJ(Token):
         def typecheck(self, scope, unutar):
-            return self
+            return Token(T.INT)
 
         def vrijednost(self, mem, unutar):
             return int(self.sadržaj)
 
     class STRING(Token):
         def typecheck(self, scope, unutar):
-            return self
+            return Token(T.STRING)
 
         def vrijednost(self, mem, unutar):
             return self.sadržaj.strip('"')
@@ -30,6 +30,10 @@ class T(TipoviTokena):
     class IME(Token):
         def typecheck(self, scope, unutar):
             return scope[self]
+            # if self in scope:
+            #     return scope[self]
+            # else:
+            #     return None # tip bi se trebao kasnije odlučiti
 
         def vrijednost(self, mem, unutar):
             if self in mem:
@@ -46,7 +50,9 @@ class T(TipoviTokena):
 
     class VARTIPA(Token):
         def typecheck(self, scope, unutar):
-            raise SemantičkaGreška('varijable tipova nisu vrijednosti')
+            """Shvaćeno je da se zapravo type checka vanjski kontekst, tj. postojanje VARTIPA"""
+            if self not in scope:
+                raise SemantičkaGreška(f'nije uvedena varijabla {self} za tip')
 
         def vrijednost(self, mem, unutar):
             raise SemantičkaGreška('varijable tipova nisu vrijednosti')

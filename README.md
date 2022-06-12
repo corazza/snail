@@ -6,13 +6,27 @@ https://www.cs.rpi.edu/courses/fall01/modcomp/project2.pdf
 
 ```bash
 cd src
-python parser.py fibonacci
+python parser.py
 ```
 
 # TODO
 
-- Block scoping
+## Optimizacije
+
 - TCO
+
+## Featurei
+
+- block scoping
 - funkcije kao vrijednosti
+- pretvori naredbe u izraze
+- import
+
+## Compiler UX
+
+- error reporting semantičkih grešaka - redak/stupac etc.
+
+## Misc.
+
 - dokumentacija ili komentari
-- nesekvencionalno referenciranje Data i def
+- nesekvencionalno referenciranje Data i def -- ovo radi?

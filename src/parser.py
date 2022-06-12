@@ -82,6 +82,7 @@ class P(Parser):
         p.imef = None
         p.parametrif = None
         p.tipf = None
+        p.vartipaf = None
         p.funkcije = Memorija(redefinicija=False)
         return Program(p.naredbe(KRAJ))
 
@@ -128,7 +129,7 @@ class P(Parser):
             if read_delim:
                 p >> T.TOČKAZ
             return vraćanje
-        
+
     def match(p) -> 'Match':
         izraz = p.izraz()
         p >> T.AS
@@ -139,10 +140,22 @@ class P(Parser):
         return Match(izraz, varijante)
 
     def varijanta(p) -> 'Varijanta':
-        izraz = p.izraz()
+        izraz = p.pattern()
         p >> T.SLIJEDI
         naredba = p.naredba(read_delim=False)
         return Varijanta(izraz, naredba)
+
+    def pattern(p) -> 'Pattern':
+        ime = p >> T.VELIKOIME
+        if p >= T.OTV:
+            imena = [p >> T.IME]
+            while p >= T.ZAREZ:
+                imena.append(p >> T.IME)
+            p >> T.ZATV
+        else:
+            imena = []
+        konstruktor = p.funkcije[ime]
+        return Pattern(konstruktor, imena)
 
     def poziv_ili_pridruživanje(p, ime) -> 'Poziv|Pridruživanje':
         if p >= T.PRIDRUŽI:
@@ -206,7 +219,7 @@ class P(Parser):
         else:
             parametri = []
         p >> T.AS
-        konstruktori = p.konstruktori()
+        konstruktori = p.konstruktori(ime)
         p >> T.ENDDATA
         return Data(ime, parametri, konstruktori)
 
@@ -216,20 +229,20 @@ class P(Parser):
             parametri.append(p >= T.VARTIPA)
         return parametri
 
-    def konstruktori(p) -> 'Konstruktor+':
-        konstruktori_tipa = [p.konstruktor()]
+    def konstruktori(p, ime) -> 'Konstruktor+':
+        konstruktori_tipa = [p.konstruktor(ime)]
         while p >= T.ZAREZ:
-            konstruktori_tipa.append(p.konstruktor())
+            konstruktori_tipa.append(p.konstruktor(ime))
         return konstruktori_tipa
 
-    def konstruktor(p) -> 'Konstruktor':
+    def konstruktor(p, od) -> 'Konstruktor':
         ime = p >> T.VELIKOIME
         if p >= T.OTV:
             članovi = p.članovi_konstruktora()
             p >> T.ZATV
         else:
             članovi = []
-        konstruktor = Konstruktor(ime, članovi)
+        konstruktor = Konstruktor(od, ime, članovi)
         p.funkcije[ime] = konstruktor
         return konstruktor
 
@@ -239,13 +252,14 @@ class P(Parser):
             tipovi.append(p.tip())
         return tipovi
 
-    def tip(p) -> 'tip|VARTIPA#|SloženiTip':
+    def tip(p) -> 'tip|VARTIPA#|FunkcijaTipa':
         if elementarni := p >= {T.INT, T.BOOL, T.STRINGT, T.UNITT}:
             return elementarni
         elif vartipa := p >= T.VARTIPA:
             return vartipa
         else:
-            ime = p >> T.VELIKOIME # TODO apstrahiraj pattern (npr. i u parametri_tipa)
+            # TODO apstrahiraj pattern (npr. i u parametri_tipa)
+            ime = p >> T.VELIKOIME
             if p >= T.MANJE:
                 parametri = [p.tip()]
                 while p >= T.ZAREZ:
@@ -253,15 +267,24 @@ class P(Parser):
                 p >> T.VECE
             else:
                 parametri = []
-            return SloženiTip(ime, parametri)
+            return FunkcijaTipa(ime, parametri)
 
     def funkcija(p) -> 'Funkcija':
         staro_imef = p.imef
         stari_parametrif = p.parametrif
+        stare_vartipaf = p.vartipaf  # TODO FIX preimenuj u parametri_tipa
         stari_tipf = p.tipf
         # TODO istražiti: memorija u parseru je loša ideja, može li se ovo preseliti drugdje?
         ime = p >> T.IME
         p.imef = ime
+
+        if p >= T.MANJE:
+            vartipa = p.parametri_tipa()
+            p >> T.VECE
+        else:
+            vartipa = []
+        p.vartipaf = vartipa
+
         parametri = p.parametri()
         p.parametrif = parametri
         p >> T.FTYPE
@@ -269,22 +292,17 @@ class P(Parser):
         p.tipf = tip
         p >> T.AS
         tijelo = p.naredbe(T.ENDDEF, pojedi=True)
-        fja = Funkcija(ime, tip, parametri, tijelo)
+        fja = Funkcija(ime, tip, vartipa, parametri, tijelo)
         p.funkcije[ime] = fja
 
         p.imef = staro_imef
         p.parametrif = stari_parametrif
         p.tipf = stari_tipf
+        p.vartipaf = stare_vartipaf
 
         return fja
 
     def vraćanje(p):
-        # if p >= T.TOČKAZ:
-        #     return Vraćanje(nenavedeno)
-        # else:
-        #     izraz = p.izraz()
-        #     p >> T.TOČKAZ
-        #     return Vraćanje(izraz)
         return Vraćanje(p.izraz())
 
     def tipizirano(p) -> 'Tipizirano':
@@ -324,7 +342,8 @@ class P(Parser):
             return p.možda_poziv(ime)
 
     def možda_poziv(p, ime) -> 'Poziv|IME|VELIKOIME':
-        if ime in p.funkcije and ime ^ T.IME: # (T.VELIKOIME treba posebnu shemu)
+        # (T.VELIKOIME treba posebnu shemu)
+        if ime in p.funkcije and ime ^ T.IME:
             funkcija = p.funkcije[ime]
             return Poziv(funkcija, p.argumenti(funkcija.parametri))
         elif ime in p.funkcije and ime ^ T.VELIKOIME:
@@ -332,7 +351,7 @@ class P(Parser):
             if len(konstruktor.parametri) > 0:
                 return Poziv(konstruktor, p.argumenti(konstruktor.parametri))
             else:
-                return konstruktor
+                return Poziv(konstruktor, [])
         elif ime == p.imef:
             return Poziv(nenavedeno, p.argumenti(p.parametrif))
         else:
@@ -360,6 +379,8 @@ class P(Parser):
 
 def test(src):
     prikaz(program := P(src), 8)
+    print('=== typechecking ===')
+    program.typecheck()
     print('=== pokretanje ===')
     program.izvrši()
 
