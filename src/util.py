@@ -1,6 +1,8 @@
 import os
 import glob
 
+from vepar import *
+
 
 def test_on_single(test, filename):
     with open(filename, 'r') as f:
@@ -17,9 +19,14 @@ def test_on_directory(test, path='../primjeri'):
         filename = os.path.join(os.getcwd(), filename)
         test_on_single(test, filename)
 
+
 def test_on(test):
     import sys
     if len(sys.argv) > 1:
         test_on_single(test, '../primjeri/' + sys.argv[1] + '.snail')
     else:
         test_on_directory(test)
+
+
+class Povratak(NelokalnaKontrolaToka):
+    pass

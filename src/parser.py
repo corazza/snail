@@ -73,8 +73,9 @@ from signal import default_int_handler
 from vepar import *
 
 from lekser import *
-from snailast import *
 from util import *
+
+from snailast import *
 
 
 class P(Parser):
@@ -252,7 +253,7 @@ class P(Parser):
             tipovi.append(p.tip())
         return tipovi
 
-    def tip(p) -> 'tip|VARTIPA#|FunkcijaTipa':
+    def tip(p) -> 'tip|VARTIPA#|SloženiTip':
         if elementarni := p >= {T.INT, T.BOOL, T.STRINGT, T.UNITT}:
             return elementarni
         elif vartipa := p >= T.VARTIPA:
@@ -267,7 +268,7 @@ class P(Parser):
                 p >> T.VECE
             else:
                 parametri = []
-            return FunkcijaTipa(ime, parametri)
+            return tipovi.SloženiTip(ime, parametri)
 
     def funkcija(p) -> 'Funkcija':
         staro_imef = p.imef
@@ -379,10 +380,13 @@ class P(Parser):
 
 def test(src):
     prikaz(program := P(src), 8)
+
     print('=== typechecking ===')
     program.typecheck()
-    print('=== pokretanje ===')
-    program.izvrši()
+    print('Done')
+
+    # print('=== pokretanje ===')
+    # program.izvrši()
 
 
 if __name__ == "__main__":

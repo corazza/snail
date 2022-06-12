@@ -53,6 +53,7 @@ class T(TipoviTokena):
             """Shvaćeno je da se zapravo type checka vanjski kontekst, tj. postojanje VARTIPA"""
             if self not in scope:
                 raise SemantičkaGreška(f'nije uvedena varijabla {self} za tip')
+            return self
 
         def vrijednost(self, mem, unutar):
             raise SemantičkaGreška('varijable tipova nisu vrijednosti')

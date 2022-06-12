@@ -5,16 +5,21 @@
 from vepar import *
 
 from lekser import *
-from scope import *
-from tipovi import *
+
+import scopes
+import tipovi
 
 
 class Program(AST):
-    naredbe: 'naredbe'
+    naredbe: 'Naredbe'
 
     def typecheck(self):
-        global_scope = Scope()
+        global_scope = scopes.Scope()
         self.naredbe.typecheck(global_scope, None)
+        for a in global_scope.mem:
+            print(f'{a[0].sadržaj}:')
+            print(f'  {a[1]}')
+            print()
 
     def izvrši(self):
         rt.mem = Memorija()
@@ -40,9 +45,9 @@ class Match(AST):
     def typecheck(self, scope, unutar):
         tip_izraza = self.izraz.typecheck(scope, unutar)
         for v in self.varijante:
-            v.ako.konstruktor = tip_u_konstruktor(
+            v.ako.konstruktor = tipovi.tip_u_konstruktor(
                 tip_izraza, v.ako.konstruktor, scope, unutar)
-            if not equiv_types(tip_izraza, v.typecheck(scope, unutar), scope, unutar):
+            if not tipovi.equiv_types(tip_izraza, v.typecheck(scope, unutar), scope, unutar):
                 # TODO subclass TypeError
                 raise SemantičkaGreška(
                     f'matchana vrijednost se ne podudara s varijantom u tipu')
@@ -58,13 +63,11 @@ class Varijanta(AST):
            izraz a ne naredba, pa bi onda tip varijante zapravo bio tip
            'onda' polja, a Match.typecheck bi bio zadužen za poklapanje
            svih 'ako' polja sa 'izraz'om Matcha."""
-        # import IPython
-        # IPython.embed()
-        lokalni = Scope(scope)
+        lokalni = scopes.Scope(scope)
         for (varijabla, parametar) in zip(self.ako.varijable, self.ako.konstruktor.parametri):
-            lokalni[varijabla] = self.mapiranje_varijabli[parametar]
-        self.onda.typecheck(scope, unutar)
-        return self.ako.typecheck(scope, unutar)
+            lokalni[varijabla] = parametar
+        self.onda.typecheck(lokalni, unutar)
+        return self.ako.typecheck(lokalni, unutar)
 
 
 class Pattern(AST):
@@ -72,7 +75,7 @@ class Pattern(AST):
     varijable: 'ime*'
 
     def typecheck(self, scope, unutar):
-        return konstruktor_u_tip(self.konstruktor, [None] * len(self.konstruktor.parametri), scope, unutar)
+        return tipovi.konstruktor_u_tip(self.konstruktor, [None] * len(self.konstruktor.parametri), scope, unutar)
 
 
 class Definiranje(AST):
@@ -82,7 +85,7 @@ class Definiranje(AST):
 
     def typecheck(self, scope, unutar):
         tip = self.izraz.typecheck(scope, unutar)
-        if not equiv_types(tip, self.tip, scope, unutar):
+        if not tipovi.equiv_types(tip, self.tip, scope, unutar):
             raise SemantičkaGreška('tipovi se ne podudaraju')
         scope[self.ime] = tip
 
@@ -103,7 +106,7 @@ class Pridruživanje(AST):
         moj_tip = scope[self.ime]
         pridruživanje_tip = self.izraz.typecheck(scope, unutar)
 
-        if not equiv_types(moj_tip, pridruživanje_tip, scope, unutar):
+        if not tipovi.equiv_types(moj_tip, pridruživanje_tip, scope, unutar):
             raise SemantičkaGreška(
                 f'{self.ime} je tipa {moj_tip} a izraz {pridruživanje_tip}')
 
@@ -131,7 +134,7 @@ class Unos(AST):
     ime: 'IME'
 
     def typecheck(self, scope, unutar):
-        if not equiv_types(scope[self.ime], Token(T.INT)):
+        if not tipovi.equiv_types(scope[self.ime], Token(T.INT)):
             raise SemantičkaGreška(f'unos mora biti u varijablu tipa {T.INT}')
         scope[self.ime] = Token(T.INT)
 
@@ -146,7 +149,7 @@ class Grananje(AST):
 
     def typecheck(self, scope, unutar):
         tip = self.provjera.typecheck(scope, unutar)
-        if not equiv_types(tip, Token(T.BOOL)):
+        if not tipovi.equiv_types(tip, Token(T.BOOL)):
             raise SemantičkaGreška(f'provjera mora biti tipa {T.BOOL}')
         self.ako.typecheck(scope, unutar)
         self.inače.typecheck(scope, unutar)
@@ -167,11 +170,12 @@ class Data(AST):
 
     def typecheck(self, scope, unutar):
         scope[self.ime] = self
-        lokalni = Scope(scope)
+        lokalni = scopes.Scope(scope)
         for p in self.parametri:
             lokalni[p] = p
         for konstruktor in self.konstruktori:
-            konstruktor.typecheck(lokalni, unutar)
+            tip = konstruktor.typecheck(lokalni, unutar)
+            scope[konstruktor.ime] = tip
 
 
 class Konstruktor(AST):
@@ -180,63 +184,10 @@ class Konstruktor(AST):
     parametri: 'tip*'
 
     def typecheck(self, scope, unutar):
-        for p in self.parametri:
-            p.typecheck(scope, unutar)
-        # scope[self.ime]
-
-
-class Infix(AST):
-    operator: 'PLUS|MINUS|...'
-    lijevi: 'faktor|član|Infix'  # TODO provjeri ima li ova deklaracija smisla
-    desni: 'faktor|član|Infix'
-
-    def typecheck(self, scope, unutar):
-        op = self.operator
-        lijevi_tip = self.lijevi.typecheck(scope, unutar)
-        desni_tip = self.desni.typecheck(scope, unutar)
-
-        if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV, T.MANJE, T.JMANJE, T.VECE, T.JVECE}:
-            if not (equiv_types(lijevi_tip, Token(T.INT)) and equiv_types(desni_tip, Token(T.INT))):
-                raise SemantičkaGreška(
-                    f'oba operanda moraju biti tipa {T.INT}')
-        elif op ^ {T.JEDNAKO, T.NEJEDNAKO}:
-            if not equiv_types(lijevi_tip, desni_tip):
-                raise SemantičkaGreška(
-                    f'oba operanda moraju biti istog tipa {lijevi_tip}')
-        else:
-            raise SemantičkaGreška(f'nepoznat operator {op}')
-
-        return Token(T.BOOL)
-
-    def vrijednost(self, mem, unutar):
-        op = self.operator
-        lijevi = self.lijevi.vrijednost(mem, unutar)
-        desni = self.desni.vrijednost(mem, unutar)
-
-        if op ^ T.PLUS:
-            return lijevi + desni
-        elif op ^ T.MINUS:
-            return lijevi - desni
-        elif op ^ T.PUTA:
-            return lijevi * desni
-        elif op ^ T.DIV:
-            if desni == 0:
-                raise SemantičkaGreška('dijeljenje s 0')
-            return lijevi / desni
-        elif op ^ T.MANJE:
-            return 1 if lijevi < desni else 0
-        elif op ^ T.JMANJE:
-            return 1 if lijevi <= desni else 0
-        elif op ^ T.VECE:
-            return 1 if lijevi > desni else 0
-        elif op ^ T.JVECE:
-            return 1 if lijevi >= desni else 0
-        elif op ^ T.JEDNAKO:
-            return 1 if lijevi == desni else 0
-        elif op ^ T.NEJEDNAKO:
-            return 1 if lijevi != desni else 0
-        else:
-            raise SemantičkaGreška(f'nepoznat operator {op}')
+        parametri = [p.typecheck(scope, unutar) for p in self.parametri]
+        složeni_tip = tipovi.konstruktor_u_tip(
+            self, self.parametri, scope, unutar)
+        return tipovi.TipKonstruktora(složeni_tip, parametri)
 
 
 class Funkcija(AST):
@@ -247,10 +198,14 @@ class Funkcija(AST):
     tijelo: 'naredba*'
 
     def typecheck(funkcija, scope, unutar):
-        lokalni = Scope(scope)
+        lokalni = scopes.Scope(scope)
         for p in funkcija.parametri:
             lokalni[p.ime] = p.tip
         funkcija.tijelo.typecheck(lokalni, funkcija)
+        parametri = [tipizirano.tip for tipizirano in funkcija.parametri]
+        tip = tipovi.TipFunkcije(funkcija.tip, parametri)
+        scope[funkcija.ime] = tip
+        return tip
 
     def pozovi(funkcija, mem, unutar, argumenti):
         lokalni = Memorija(zip([p.ime for p in funkcija.parametri], argumenti))
@@ -277,22 +232,14 @@ class Poziv(AST):
 
         if isinstance(pozvana, Funkcija):
             for (p, a) in zip(pozvana.parametri, argumenti):
-                if not equiv_types(p.tip, a, scope, unutar):
+                if not tipovi.equiv_types(p.tip, a, scope, unutar):
                     raise SemantičkaGreška(
                         f'očekivan tip {p.tip}, a dan {a[1]}')
             return pozvana.tip
         else:  # TODO ujedini funkcije i konstruktore
             assert(isinstance(pozvana, Konstruktor))
             assert(len(argumenti) == len(pozvana.parametri))
-            # exit("OVDJE TIPIZIRAJ")
-            # for (p, a) in zip(pozvana.parametri, argumenti):
-            #     if not equiv_types(p, a, scope, unutar):
-            #         import IPython
-            #         IPython.embed()
-
-            #         raise SemantičkaGreška(
-            #             f'očekivan tip {p.tip}, a dan {a}')
-            return konstruktor_u_tip(pozvana, argumenti, scope, unutar)
+            return tipovi.konstruktor_u_tip(pozvana, argumenti, scope, unutar)
 
     def vrijednost(poziv, mem, unutar):
         pozvana = poziv.funkcija
@@ -329,13 +276,66 @@ class Vraćanje(AST):
             raise Povratak(vrijednost)
 
 
+class Infix(AST):
+    operator: 'PLUS|MINUS|...'
+    lijevi: 'faktor|član|Infix'  # TODO provjeri ima li ova deklaracija smisla
+    desni: 'faktor|član|Infix'
+
+    def typecheck(self, scope, unutar):
+        op = self.operator
+        lijevi_tip = self.lijevi.typecheck(scope, unutar)
+        desni_tip = self.desni.typecheck(scope, unutar)
+
+        if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV, T.MANJE, T.JMANJE, T.VECE, T.JVECE}:
+            if not (tipovi.equiv_types(lijevi_tip, Token(T.INT), scope, unutar) and tipovi.equiv_types(desni_tip, Token(T.INT), scope, unutar)):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.INT}')
+        elif op ^ {T.JEDNAKO, T.NEJEDNAKO}:
+            if not tipovi.equiv_types(lijevi_tip, desni_tip, scope, unutar):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti istog tipa {lijevi_tip}')
+        else:
+            raise SemantičkaGreška(f'nepoznat operator {op}')
+
+        if op ^ {T.PLUS, T.PUTA, T.DIV}:
+            return Token(T.INT)
+        else:
+            return Token(T.BOOL)
+
+    def vrijednost(self, mem, unutar):
+        op = self.operator
+        lijevi = self.lijevi.vrijednost(mem, unutar)
+        desni = self.desni.vrijednost(mem, unutar)
+
+        if op ^ T.PLUS:
+            return lijevi + desni
+        elif op ^ T.MINUS:
+            return lijevi - desni
+        elif op ^ T.PUTA:
+            return lijevi * desni
+        elif op ^ T.DIV:
+            if desni == 0:
+                raise SemantičkaGreška('dijeljenje s 0')
+            return lijevi / desni
+        elif op ^ T.MANJE:
+            return 1 if lijevi < desni else 0
+        elif op ^ T.JMANJE:
+            return 1 if lijevi <= desni else 0
+        elif op ^ T.VECE:
+            return 1 if lijevi > desni else 0
+        elif op ^ T.JVECE:
+            return 1 if lijevi >= desni else 0
+        elif op ^ T.JEDNAKO:
+            return 1 if lijevi == desni else 0
+        elif op ^ T.NEJEDNAKO:
+            return 1 if lijevi != desni else 0
+        else:
+            raise SemantičkaGreška(f'nepoznat operator {op}')
+
+
 class Tipizirano(AST):
     ime: 'IME'
     tip: 'tip'
-
-
-class Povratak(NelokalnaKontrolaToka):
-    pass
 
 
 class UnitValue(AST):
