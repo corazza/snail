@@ -17,10 +17,15 @@ python parser.py liste
 
 ## Featurei
 
-- block scoping
-- funkcije kao vrijednosti
-- pretvori naredbe u izraze
+- bolji printevi
+- `__input` i `__print` internal komande, da se mogu napraviti `input()` i `print()` f-je
 - import
+- funkcije kao vrijednosti
+
+## Featurei (teško)
+
+- pretvori naredbe u izraze
+- block scoping
 
 ## Compiler UX
 
