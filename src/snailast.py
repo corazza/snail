@@ -303,7 +303,8 @@ class Grananje(AST):
         if not tipovi.equiv_types(tip, Token(T.BOOL), scope, unutar):
             raise SemantičkaGreška(f'provjera mora biti tipa {T.BOOL}')
         self.ako.typecheck(scope, unutar)
-        self.inače.typecheck(scope, unutar)
+        if self.inače != nenavedeno:
+            self.inače.typecheck(scope, unutar)
 
     def izvrši(self, mem, unutar):
         vrijednost = self.provjera.vrijednost(mem, unutar)

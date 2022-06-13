@@ -12,7 +12,7 @@ enddef
 
 def prvih_n_fib(n: int) -> unit as
     if n == 0 then
-        return;
+        return 0;
     endif /* test
 
     viselinijskih
@@ -22,9 +22,10 @@ def prvih_n_fib(n: int) -> unit as
     prvih_n_fib(n-1);
     print(fib(/* testiraj tu */n));
     print " "; /* opet test*/
-    return;
+    return 0;
 enddef
 
+let n: int = -1;
 print "unesite n: ";
 input n;
 prvih_n_fib(n);

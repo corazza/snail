@@ -170,7 +170,6 @@ class P(Parser):
                 funkcija = nenavedeno
                 parametri = p.parametrif
             else:
-                IPython.embed()
                 raise SintaksnaGreška('nepoznata funkcija')
             argumenti = p.argumenti(parametri)
             return Poziv(funkcija, argumenti)

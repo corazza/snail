@@ -6,7 +6,7 @@ https://www.cs.rpi.edu/courses/fall01/modcomp/project2.pdf
 
 ```bash
 cd src
-python parser.py
+python parser.py liste
 ```
 
 # TODO
