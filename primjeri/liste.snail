@@ -15,5 +15,40 @@ def head<B>(xs: List<B>) -> Option<B> as
     endmatch
 enddef
 
-let lista: List<int> = Concat(1, Concat(2, Concat(3, Nil)));
-print head(lista);
+def unesi_element<A>(xs: List<A>) -> List<A> as
+    let x: int = 0;
+    print "Unesite element: ";
+    input x;
+    return Concat(x, xs);
+enddef
+
+def unesi_n_elemenata<A>(xs: List<A>, n: int) -> List<A> as
+    if n == 0 then
+        return xs;
+    else
+        xs = unesi_element(xs);
+        return unesi_n_elemenata(xs, n - 1);
+    endif
+enddef
+
+let n: int = -1;
+let lista: List<int> = Concat(1, Nil);
+
+print "Unesite broj elemenata: ";
+input n;
+
+lista = unesi_n_elemenata(lista, n);
+
+
+print "Unesena lista:";
+print newline;
+print lista;
+print newline;
+print newline;
+
+print "Prvi element: ";
+
+match head(lista) as
+    None => print "nema ga",
+    Some(x) => print x
+endmatch

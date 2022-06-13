@@ -1,6 +1,8 @@
 from lekser import *
 from vepar import *
 
+import IPython  # TODO remove
+
 import scopes
 import snailast
 
@@ -62,9 +64,12 @@ def izrazunaj_vartipa_mapiranje(parametar, argument):
                 # treba paziti na konzistentnost mapiranja
                 if p not in složeno_mapiranje or složeno_mapiranje[p] == a or složeno_mapiranje[p] == None:
                     složeno_mapiranje[p] = a
+                elif p == a:
+                    assert(p ^ T.VARTIPA and a ^ T.VARTIPA)
                 elif a != None:
-                    raise RuntimeError(
+                    raise SemantičkaGreška(
                         f'{složeno_mapiranje} već ima ključ {p} koji se ne mapira na {None}, a vrijednost {a} nije {složeno_mapiranje[p]}')
+                # else => a == None, i ne radimo ništa
 
         return složeno_mapiranje
 
@@ -109,11 +114,12 @@ def konstruktor_u_tip(konstruktor, argumenti, scope, unutar):
 def equiv_types(a, b, scope, unutar):
     """Checks types a and b for equality within a scope"""
     if a == None:
-        return b ^ T.VARTIPA
+        return b ^ T.VARTIPA or b ^ elementarni
     elif b == None:
-        return a ^ T.VARTIPA
+        return a ^ T.VARTIPA or a ^ elementarni
     elif a ^ elementarni or b ^ elementarni:
-        return a == b
+        assert(a not in scope and b not in scope)  # debugiranje
+        return a == b or a ^ T.VARTIPA or b ^ T.VARTIPA
     elif a ^ T.VARTIPA and b ^ T.VARTIPA:
         return a.sadržaj == b.sadržaj
     elif isinstance(a, SloženiTip) and isinstance(b, SloženiTip):

@@ -161,7 +161,6 @@ class P(Parser):
     def poziv_ili_pridruživanje(p, ime) -> 'Poziv|Pridruživanje':
         if p >= T.PRIDRUŽI:
             izraz = p.izraz()
-            # p >> T.TOČKAZ
             return Pridruživanje(ime, izraz)
         else:
             if ime in p.funkcije:
@@ -171,9 +170,9 @@ class P(Parser):
                 funkcija = nenavedeno
                 parametri = p.parametrif
             else:
+                IPython.embed()
                 raise SintaksnaGreška('nepoznata funkcija')
             argumenti = p.argumenti(parametri)
-            # p >> T.TOČKAZ
             return Poziv(funkcija, argumenti)
 
     def grananje(p) -> 'Grananje':
@@ -190,26 +189,21 @@ class P(Parser):
 
     def printanje(p) -> 'Printanje':
         if newline := p >= T.NEWLINE:
-            # p >> T.TOČKAZ
             return Printanje(newline)
         elif string := p >= T.STRING:
-            # p >> T.TOČKAZ
             return Printanje(string)
         else:
             izraz = p.izraz()
-            # p >> T.TOČKAZ
             return Printanje(izraz)
 
     def definiranje(p) -> 'Definiranje':
         tipizirano = p.tipizirano()
         p >> T.PRIDRUŽI
         izraz = p.izraz()
-        # p >> T.TOČKAZ
         return Definiranje(tipizirano.ime, tipizirano.tip, izraz)
 
     def input(p) -> 'Input':
         ime = p >> T.IME
-        # p >> T.TOČKAZ
         return Unos(ime)
 
     def definiranje_tipa(p) -> 'Data':
@@ -335,7 +329,7 @@ class P(Parser):
                 p >> T.ZATV
                 return izraz
         elif minus := p >= T.MINUS:
-            return Infix(minus, 0, p.faktor())
+            return Infix(minus, nenavedeno, p.faktor())
         elif broj := p >= T.BROJ:
             return broj
         else:
@@ -385,8 +379,8 @@ def test(src):
     program.typecheck()
     print('Done')
 
-    # print('=== pokretanje ===')
-    # program.izvrši()
+    print('=== pokretanje ===')
+    program.izvrši()
 
 
 if __name__ == "__main__":

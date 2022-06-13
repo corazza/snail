@@ -2,6 +2,8 @@
 # Program: naredbe: [naredba]
 # naredba:
 
+import IPython  # TODO remove
+
 from vepar import *
 
 from lekser import *
@@ -42,6 +44,16 @@ class Match(AST):
     izraz: 'izraz'
     varijante: 'Varijanta+'
 
+    def izvrši(self, scope, unutar):
+        vrijednost = self.izraz.vrijednost(scope, unutar)
+        izvršeno = False
+        for v in self.varijante:
+            if v.ako.does_match(vrijednost, scope, unutar):
+                v.izvrši(vrijednost, scope, unutar)
+                izvršeno = True
+        if not izvršeno:  # TODO ovo u typecheck!!!
+            raise SemantičkaGreška("nisu pokriveni svi slučajevi")
+
     def typecheck(self, scope, unutar):
         tip_izraza = self.izraz.typecheck(scope, unutar)
         for v in self.varijante:
@@ -56,6 +68,14 @@ class Match(AST):
 class Varijanta(AST):
     ako: 'Pattern'
     onda: 'naredba'
+
+    def izvrši(self, vrijednost, scope, unutar):
+        # dodaj varijable u scope
+        local = scopes.Scope(scope)
+        matchano = self.ako.match(vrijednost)
+        for (var, vrijednost) in zip(self.ako.varijable, matchano):
+            local[var] = vrijednost
+        self.onda.izvrši(local, unutar)
 
     def typecheck(self, scope, unutar):
         """Ova metoda signalizira Matchu tip 'ako' polja u varijanti,
@@ -74,6 +94,12 @@ class Pattern(AST):
     konstruktor: 'Konstruktor'
     varijable: 'ime*'
 
+    def match(self, vrijednost):
+        return vrijednost.argumenti
+
+    def does_match(self, vrijednost, mem, unutar):
+        return self.konstruktor.ime == vrijednost.konstruktor.ime
+
     def typecheck(self, scope, unutar):
         return tipovi.konstruktor_u_tip(self.konstruktor, [None] * len(self.konstruktor.parametri), scope, unutar)
 
@@ -90,9 +116,9 @@ class Definiranje(AST):
         scope[self.ime] = tip
 
     def izvrši(self, mem, unutar):
-        vrijednost = self.izraz.vrijednost(mem, unutar)
-        mem[self.ime] = vrijednost
-
+        if self.ime in mem:
+            raise SemantičkaGreška(f'redefiniranje {self.ime}')
+        mem[self.ime] = self.izraz.vrijednost(mem, unutar)
 
 class Pridruživanje(AST):
     ime: 'IME'
@@ -114,53 +140,7 @@ class Pridruživanje(AST):
         if self.ime not in mem:
             raise SemantičkaGreška(
                 f'korištenje {self.ime} prije definiranja (let {self.ime}: TIP = IZRAZ;)')
-        mem[self.ime] = self.izraz.izvrši(mem, unutar)
-
-
-class Printanje(AST):
-    sadržaj: 'izraz|STRING#|NEWLINE'
-
-    def typecheck(self, scope, unutar):
-        return
-
-    def izvrši(self, mem, unutar):
-        if self.sadržaj ^ T.NEWLINE:
-            print()
-        else:
-            print(self.sadržaj.vrijednost(mem, unutar), end='')
-
-
-class Unos(AST):
-    ime: 'IME'
-
-    def typecheck(self, scope, unutar):
-        if not tipovi.equiv_types(scope[self.ime], Token(T.INT)):
-            raise SemantičkaGreška(f'unos mora biti u varijablu tipa {T.INT}')
-        scope[self.ime] = Token(T.INT)
-
-    def izvrši(self, mem, unutar):
-        mem[self.ime] = int(input())
-
-
-class Grananje(AST):
-    provjera: 'izraz'
-    ako: 'naredba+'
-    inače: '(naredba+)?'
-
-    def typecheck(self, scope, unutar):
-        tip = self.provjera.typecheck(scope, unutar)
-        if not tipovi.equiv_types(tip, Token(T.BOOL)):
-            raise SemantičkaGreška(f'provjera mora biti tipa {T.BOOL}')
-        self.ako.typecheck(scope, unutar)
-        self.inače.typecheck(scope, unutar)
-
-    def izvrši(self, mem, unutar):
-        vrijednost = self.provjera.vrijednost(mem, unutar)
-
-        if vrijednost:
-            return self.ako.izvrši(mem, unutar)
-        elif self.inače:
-            return self.inače.izvrši(mem, unutar)
+        mem[self.ime] = self.izraz.vrijednost(mem, unutar)
 
 
 class Data(AST):
@@ -177,6 +157,15 @@ class Data(AST):
             tip = konstruktor.typecheck(lokalni, unutar)
             scope[konstruktor.ime] = tip
 
+    def izvrši(self, mem, unutar):
+        """<Data> definicije se ne izvršavaju"""
+
+
+class SloženaVrijednost(AST):
+    # Ovo je AST samo da bi se naslijedio lijepi print
+    konstruktor: 'Konstruktor'
+    argumenti: 'izraz'
+
 
 class Konstruktor(AST):
     od: 'VELIKOIME'
@@ -188,6 +177,9 @@ class Konstruktor(AST):
         složeni_tip = tipovi.konstruktor_u_tip(
             self, self.parametri, scope, unutar)
         return tipovi.TipKonstruktora(složeni_tip, parametri)
+
+    def pozovi(konstruktor, mem, unutar, argumenti):
+        return SloženaVrijednost(konstruktor, argumenti)
 
 
 class Funkcija(AST):
@@ -217,7 +209,7 @@ class Funkcija(AST):
             raise GreškaIzvođenja(f'{funkcija.ime} nije ništa vratila')
 
     def izvrši(self, mem, unutar):
-        """Definicije se ne izvršavaju u runtimeu."""
+        """<Funkcija> definicije se ne izvršavaju"""
 
 
 class Poziv(AST):
@@ -234,7 +226,7 @@ class Poziv(AST):
             for (p, a) in zip(pozvana.parametri, argumenti):
                 if not tipovi.equiv_types(p.tip, a, scope, unutar):
                     raise SemantičkaGreška(
-                        f'očekivan tip {p.tip}, a dan {a[1]}')
+                        f'očekivan tip {p.tip}, a dan {a}')
             return pozvana.tip
         else:  # TODO ujedini funkcije i konstruktore
             assert(isinstance(pozvana, Konstruktor))
@@ -249,7 +241,7 @@ class Poziv(AST):
         return pozvana.pozovi(mem, unutar, argumenti)
 
     def izvrši(poziv, mem, unutar):
-        poziv.vrijednost(mem, unutar)
+        return poziv.vrijednost(mem, unutar)
 
     def za_prikaz(poziv):  # samo za ispis, da se ne ispiše čitava funkcija
         r = {'argumenti': poziv.argumenti}
@@ -276,6 +268,51 @@ class Vraćanje(AST):
             raise Povratak(vrijednost)
 
 
+class Printanje(AST):
+    sadržaj: 'izraz|STRING#|NEWLINE'
+
+    def typecheck(self, scope, unutar):
+        return
+
+    def izvrši(self, mem, unutar):
+        if self.sadržaj ^ T.NEWLINE:
+            print()
+        else:
+            print(self.sadržaj.vrijednost(mem, unutar), end='')
+
+
+class Unos(AST):
+    ime: 'IME'
+
+    def typecheck(self, scope, unutar):
+        if not tipovi.equiv_types(scope[self.ime], Token(T.INT), scope, unutar):
+            raise SemantičkaGreška(f'unos mora biti u varijablu tipa {T.INT}')
+        scope[self.ime] = Token(T.INT)
+
+    def izvrši(self, mem, unutar):
+        mem[self.ime] = int(input())
+
+
+class Grananje(AST):
+    provjera: 'izraz'
+    ako: 'naredba+'
+    inače: '(naredba+)?'
+
+    def typecheck(self, scope, unutar):
+        tip = self.provjera.typecheck(scope, unutar)
+        if not tipovi.equiv_types(tip, Token(T.BOOL), scope, unutar):
+            raise SemantičkaGreška(f'provjera mora biti tipa {T.BOOL}')
+        self.ako.typecheck(scope, unutar)
+        self.inače.typecheck(scope, unutar)
+
+    def izvrši(self, mem, unutar):
+        vrijednost = self.provjera.vrijednost(mem, unutar)
+        if vrijednost:
+            return self.ako.izvrši(mem, unutar)
+        elif self.inače:
+            return self.inače.izvrši(mem, unutar)
+
+
 class Infix(AST):
     operator: 'PLUS|MINUS|...'
     lijevi: 'faktor|član|Infix'  # TODO provjeri ima li ova deklaracija smisla
@@ -283,7 +320,10 @@ class Infix(AST):
 
     def typecheck(self, scope, unutar):
         op = self.operator
-        lijevi_tip = self.lijevi.typecheck(scope, unutar)
+        if self.lijevi == nenavedeno:
+            lijevi_tip = Token(T.INT)
+        else:
+            lijevi_tip = self.lijevi.typecheck(scope, unutar)
         desni_tip = self.desni.typecheck(scope, unutar)
 
         if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV, T.MANJE, T.JMANJE, T.VECE, T.JVECE}:
@@ -297,14 +337,17 @@ class Infix(AST):
         else:
             raise SemantičkaGreška(f'nepoznat operator {op}')
 
-        if op ^ {T.PLUS, T.PUTA, T.DIV}:
+        if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV}:
             return Token(T.INT)
         else:
             return Token(T.BOOL)
 
     def vrijednost(self, mem, unutar):
         op = self.operator
-        lijevi = self.lijevi.vrijednost(mem, unutar)
+        if self.lijevi == nenavedeno:
+            lijevi = 0
+        else:
+            lijevi = self.lijevi.vrijednost(mem, unutar)
         desni = self.desni.vrijednost(mem, unutar)
 
         if op ^ T.PLUS:
