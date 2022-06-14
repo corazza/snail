@@ -18,10 +18,7 @@ class Program(AST):
     def typecheck(self):
         global_scope = scopes.Scope()
         self.naredbe.typecheck(global_scope, None)
-        rows = filter(lambda a: not isinstance(a[1], Data), global_scope.mem)
-        for ime, tip in rows:
-            tip = token_repr(tip)
-            print(f'{ime.sadržaj}:  {tip}')
+        return filter(lambda a: not isinstance(a[1], Data), global_scope.mem)
 
     def izvrši(self):
         rt.mem = Memorija()
@@ -167,9 +164,9 @@ class SloženaVrijednost(AST):
     konstruktor: 'Konstruktor'
     argumenti: 'izraz'
 
-    def __repr__(self):
+    def __str__(self):
         ime = self.konstruktor.ime
-        argumenti = ", ".join(map(token_repr, self.argumenti))
+        argumenti = ", ".join(map(printanje_str, self.argumenti))
         return f"{ime}({argumenti})" if len(argumenti) > 0 else f"{ime}"
 
 
@@ -191,7 +188,7 @@ class Konstruktor(AST):
 class Funkcija(AST):
     ime: 'IME'
     tip: 'tip'
-    vartipa: 'VELIKOIME*'
+    vartipa: 'VELIKOIME*' # TODO FIX NEXT potrebno?
     parametri: 'Tipizirano*'
     tijelo: 'naredba*'
 
@@ -226,17 +223,18 @@ class Poziv(AST):
         pozvana = poziv.funkcija
         if pozvana is nenavedeno:
             pozvana = unutar  # rekurzivni poziv
+        parametri = list(map(lambda p: p.tip, pozvana.parametri))
         argumenti = [a.typecheck(scope, unutar) for a in poziv.argumenti]
 
         if isinstance(pozvana, Funkcija):
-            for (p, a) in zip(pozvana.parametri, argumenti):
-                if not tipovi.equiv_types(p.tip, a, scope, unutar):
-                    raise SemantičkaGreška(
-                        f'očekivan tip {p.tip}, a dan {a}')
-            return pozvana.tip
+            # for (p, a) in zip(parametri, argumenti):
+            #     if not tipovi.equiv_types(p, a, scope, unutar):
+            #         raise SemantičkaGreška(
+            #             f'očekivan tip {p}, a dan {a}')
+            return tipovi.funkcija_u_tip(pozvana, argumenti, scope, unutar)
         else:  # TODO ujedini funkcije i konstruktore
             assert(isinstance(pozvana, Konstruktor))
-            assert(len(argumenti) == len(pozvana.parametri))
+            assert(len(argumenti) == len(parametri))
             return tipovi.konstruktor_u_tip(pozvana, argumenti, scope, unutar)
 
     def vrijednost(poziv, mem, unutar):
@@ -265,8 +263,9 @@ class Vraćanje(AST):
 
     def typecheck(self, scope, unutar):
         if self.izraz ^ T.UNIT:
-            return Token(T.UNITT)
-        tip_izraza = self.izraz.typecheck(scope, unutar)
+            tip_izraza = Token(T.UNITT)
+        else:
+            tip_izraza = self.izraz.typecheck(scope, unutar)
         if not tipovi.equiv_types(tip_izraza, unutar.tip, scope, unutar):
             raise SemantičkaGreška(
                 f'funkcija {unutar.ime.sadržaj} treba vratiti {unutar.tip.sadržaj} (dano: {tip_izraza.sadržaj})')
@@ -290,7 +289,7 @@ class Printanje(AST):
         if self.sadržaj ^ T.NEWLINE:
             print()
         else:
-            print(self.sadržaj.vrijednost(mem, unutar), end='')
+            print(token_str(self.sadržaj.vrijednost(mem, unutar)), end='')
 
 
 class Unos(AST):

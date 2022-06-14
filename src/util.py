@@ -8,10 +8,20 @@ class Povratak(NelokalnaKontrolaToka):
     pass
 
 
-def token_repr(x):
+def token_str(x):
     if isinstance(x, Token):
         return x.sadržaj
     elif x == None:
         return "_"
     else:
-        return repr(x)
+        return str(x)
+
+def printanje_str(x):
+    if isinstance(x, Token):
+        raise SemantičkaGreška("vrijednost ne bi trebala biti Token")
+    elif x == None:
+        raise SemantičkaGreška("vrijednost ne bi trebala biti None")
+    elif isinstance(x, str):
+        return '"' + x + '"'
+    else:
+        return str(x)

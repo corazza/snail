@@ -34,8 +34,8 @@ class T(TipoviTokena):
         def typecheck(self, scope, unutar):
             return Token(T.UNITT)
 
-        def __repr__(self):
-            # Vraća self kao vrijednost, pa treba __repr__
+        def __str__(self):
+            # Vraća self kao vrijednost, pa treba __str__
             return "()"
 
         def vrijednost(self, mem, unutar):
@@ -48,7 +48,7 @@ class T(TipoviTokena):
         def vrijednost(self, scope, unutar):
             return scope[self]
 
-        def __repr__(self):
+        def __str__(self):
             return self.sadržaj
 
     class VELIKOIME(Token):
@@ -58,7 +58,7 @@ class T(TipoviTokena):
         def vrijednost(self, mem, unutar):
             raise SemantičkaGreška('tipovi nisu vrijednosti')
 
-        def __repr__(self):
+        def __str__(self):
             return self.sadržaj
 
     class VARTIPA(Token):
@@ -71,7 +71,7 @@ class T(TipoviTokena):
         def vrijednost(self, mem, unutar):
             raise SemantičkaGreška('varijable tipova nisu vrijednosti')
 
-        def __repr__(self):
+        def __str__(self):
             return self.sadržaj
 
 
