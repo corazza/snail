@@ -301,19 +301,3 @@ class P(Parser):
                 p >> T.ZAREZ
         p >> T.ZATV
         return izrazi
-
-
-def test(src):
-    prikaz(program := P(src), 8)
-
-    print('=== typechecking ===')
-    program.typecheck()
-    print()
-
-    print('=== pokretanje ===')
-    program.izvrši()
-
-
-if __name__ == "__main__":
-    from util import test_on
-    test_on(test)

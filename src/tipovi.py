@@ -27,7 +27,7 @@ class TipKonstruktora(AST):
     def __repr__(self):
         parametri = ", ".join(map(token_repr, self.parametri))
         tip = token_repr(self.tip)
-        return f"{parametri} -> {tip}"
+        return f"{parametri} -> {tip}" if len(parametri) > 0 else f"{tip}"
 
 class SloženiTip(AST):
     """Ovo je pojednostavljeni Data(AST)."""
