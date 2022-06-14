@@ -4,14 +4,15 @@ from util import *
 
 
 class T(TipoviTokena):
-    IF, THEN, ELSE, ENDIF, PRINT, INPUT, NEWLINE, DEF, AS, ENDDEF, RETURN =\
-        'if', 'then', 'else', 'endif', 'print', 'input', 'newline', 'def', 'as', 'enddef', 'return'
+    IF, THEN, ELSE, ENDIF, NEWLINE, DEF, AS, ENDDEF, RETURN =\
+        'if', 'then', 'else', 'endif', 'newline', 'def', 'as', 'enddef', 'return'
     DATA, ENDDATA, MATCH, ENDMATCH = 'data', 'enddata', 'match', 'endmatch'
     PLUS, MINUS, PUTA, DIV = '+-*/'
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO, SLIJEDI = '<', '>', '<=', '>=', '==', '!=', '=>'
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
     LET, OFTYPE, FTYPE = 'let', ':', '->'
     INT, BOOL, STRINGT, UNITT = 'int', 'bool', 'string', 'unit'
+    PRINT, INPUT = 'print', 'input'
 
     class BROJ(Token):
         def typecheck(self, scope, unutar):
@@ -58,6 +59,7 @@ class T(TipoviTokena):
         def vrijednost(self, mem, unutar):
             raise SemantičkaGreška('varijable tipova nisu vrijednosti')
 
+
 @lexer
 def snail(lex):
     for znak in lex:
@@ -92,21 +94,24 @@ def snail(lex):
         elif znak == '"':
             lex <= '"'
             yield lex.token(T.STRING)
-        elif znak.isalpha() or znak == '_':
+        elif znak.isalpha():
             if znak.isupper():
                 if lex > str.isalpha:
-                    lex * {str.isalnum, '_'}    
+                    lex * {str.isalnum, '_'}
                     yield lex.token(T.VELIKOIME)
                 else:
-                    lex * {str.isalnum, '_'}    
+                    lex * {str.isalnum, '_'}
                     yield lex.token(T.VARTIPA)
             else:
-                lex * {str.isalnum, '_'}    
+                lex * {str.isalnum, '_'}
                 yield lex.literal_ili(T.IME)
         elif znak.isdecimal():
             lex.prirodni_broj(znak)
             yield lex.token(T.BROJ)
         else:
+            # print('here1')
+            # lex * {str.isalnum, '_'}
+            # print('here2')
             yield lex.literal(T)
 
 

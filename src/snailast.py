@@ -120,6 +120,7 @@ class Definiranje(AST):
             raise SemantičkaGreška(f'redefiniranje {self.ime}')
         mem[self.ime] = self.izraz.vrijednost(mem, unutar)
 
+
 class Pridruživanje(AST):
     ime: 'IME'
     izraz: 'izraz'
@@ -258,7 +259,11 @@ class Vraćanje(AST):
     izraz: 'izraz?'
 
     def typecheck(self, scope, unutar):
-        return self.izraz.typecheck(scope, unutar)
+        tip_izraza = self.izraz.typecheck(scope, unutar)
+        if not tipovi.equiv_types(tip_izraza, unutar.tip, scope, unutar):
+            raise SemantičkaGreška(
+                f'funkcija {unutar.ime.sadržaj} treba vratiti {unutar.tip.sadržaj} (dano: {tip_izraza.sadržaj})')
+        return tip_izraza
 
     def izvrši(self, mem, unutar):
         if self.izraz is nenavedeno:

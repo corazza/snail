@@ -1,0 +1,36 @@
+data Pair<C, D> as
+    PairD(C, D)
+enddata
+
+def first<E, F>(p: Pair<E, F>) -> E as
+    match p as
+        PairD(a, b) => return a
+    endmatch
+enddef
+
+def second<A, B>(p: Pair<A, B>) -> B as
+    match p as
+        PairD(a, b) => return b
+    endmatch
+enddef
+
+def dot(a: Pair<int, int>, b: Pair<int, int>) -> int as
+    let x1: int = first(a);
+    let y1: int = second(a);
+    let x2: int = first(b);
+    let y2: int = second(b);
+/*    print x1;
+    print newline;
+    print y1;
+    print newline;
+    print x2;
+    print newline;
+    print y1;
+    print newline; */
+    return x1 * x2 + y1 * y2;
+enddef
+
+let p1: Pair<int, int> = PairD(1, 6);
+let p2: Pair<int, int> = PairD(1, 6);
+
+print(dot(p1, p2));

@@ -18,7 +18,7 @@ enddef
 def unesi_element<A>(xs: List<A>) -> List<A> as
     let x: int = 0;
     print "Unesite element: ";
-    input x;
+    __input x;
     return Concat(x, xs);
 enddef
 
@@ -35,7 +35,7 @@ let n: int = -1;
 let lista: List<int> = Concat(1, Nil);
 
 print "Unesite broj elemenata: ";
-input n;
+__input n;
 
 lista = unesi_n_elemenata(lista, n);
 
