@@ -6,15 +6,15 @@ import IPython  # TODO remove
 
 
 class T(TipoviTokena):
-    IF, THEN, ELSE, ENDIF, NEWLINE, DEF, AS, ENDDEF, RETURN =\
-        'if', 'then', 'else', 'endif', 'newline', 'def', 'as', 'enddef', 'return'
+    IF, THEN, ELSE, ENDIF, DEF, AS, ENDDEF, RETURN =\
+        'if', 'then', 'else', 'endif', 'def', 'as', 'enddef', 'return'
     DATA, ENDDATA, MATCH, ENDMATCH = 'data', 'enddata', 'match', 'endmatch'
     PLUS, MINUS, PUTA, DIV = '+-*/'
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO, SLIJEDI = '<', '>', '<=', '>=', '==', '!=', '=>'
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
     LET, OFTYPE, FTYPE = 'let', ':', '->'
     INT, BOOL, STRINGT, UNITT = 'int', 'bool', 'string', 'unit'
-    PRINT, INPUT = 'print', 'input'
+    PRINT, INPUT, NEWLINE = '__print', '__input', '__newline'
 
     class BROJ(Token):
         def typecheck(self, scope, unutar):
@@ -109,6 +109,9 @@ def snail(lex):
         elif znak == '"':
             lex <= '"'
             yield lex.token(T.STRING)
+        elif znak == '_':
+            lex * {str.isalpha, '_'}
+            yield lex.literal(T)
         elif znak.isalpha():
             if znak.isupper() and lex > str.isupper:
                 lex * {str.isalpha}

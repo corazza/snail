@@ -17,7 +17,7 @@ class TipFunkcije(AST):
     def __str__(self):
         parametri = ", ".join(map(token_str, self.parametri))
         tip = token_str(self.tip)
-        return f"{parametri} -> {tip}"
+        return f"({parametri}) -> {tip}"
 
 # TODO unificiraj sa funkcijama
 class TipKonstruktora(AST):
@@ -27,7 +27,7 @@ class TipKonstruktora(AST):
     def __str__(self):
         parametri = ", ".join(map(token_str, self.parametri))
         tip = token_str(self.tip)
-        return f"{parametri} -> {tip}" if len(parametri) > 0 else f"{tip}"
+        return f"({parametri}) -> {tip}" if len(parametri) > 0 else f"{tip}"
 
 class SloženiTip(AST):
     """Ovo je pojednostavljeni Data(AST)."""
@@ -65,6 +65,8 @@ def izračunaj_vartipa_mapiranje(parametar, argument):
     if isinstance(parametar, Token) and parametar ^ T.VARTIPA:
         if isinstance(argument, SloženiTip) or (isinstance(argument, Token) and (argument ^ T.VARTIPA or argument ^ elementarni)) or argument == None:
             return {parametar: argument}
+    elif isinstance(parametar, Token) and parametar ^ elementarni and (isinstance(argument, Token) and argument ^ elementarni or argument == None):
+        return {} # TODO FIX URGENT kad se dolazi ovdje?
     elif isinstance(parametar, SloženiTip):
         if isinstance(argument, SloženiTip) and parametar.ime == argument.ime and len(parametar.argumenti) == len(argument.argumenti):
             return izračunaj_vartipa_mapiranje(parametar.argumenti, argument.argumenti)
@@ -88,7 +90,7 @@ def izračunaj_vartipa_mapiranje(parametar, argument):
         return složeno_mapiranje
 
     raise RuntimeError(
-        f'ne mogu izracunati mapiranje za {parametar} i {argument}')
+        f'ne mogu izračunati mapiranje za {parametar} i {argument}')
 
 
 def tip_u_konstruktor(funkcija_tipa, konstruktor, scope, unutar):
@@ -107,6 +109,8 @@ def tip_u_konstruktor(funkcija_tipa, konstruktor, scope, unutar):
 def kompozicija_mapiranja(iz, u):
     mapiranje = {}
     for (k, v) in iz.items():
+        if v not in u:
+            IPython.embed()
         assert(v in u)
         mapiranje[k] = u[v]
     return mapiranje
@@ -116,13 +120,13 @@ def konstruktor_u_tip(konstruktor, argumenti, scope, unutar):
     """Vrati funkciju tipa za konstruktor kad se primijene dani argumenti."""
     tip = scope[konstruktor.od]
     funkcija_tipa = SloženiTip(tip.ime, tip.parametri)
-    originalni_konstruktor = tip_u_konstruktor( # TODO FIX NEXT potrebno? mislim da se ne stvaraju novi konstruktori
-        funkcija_tipa, konstruktor, scope, unutar)
-    originalni_u_dani = izračunaj_vartipa_mapiranje(
-        originalni_konstruktor.parametri, konstruktor.parametri)
+    # originalni_konstruktor = tip_u_konstruktor( # TODO FIX NEXT potrebno? mislim da se ne stvaraju novi konstruktori
+    #     funkcija_tipa, konstruktor, scope, unutar)
+    # originalni_u_dani = izračunaj_vartipa_mapiranje(
+    #     originalni_konstruktor.parametri, konstruktor.parametri)
     mapiranje = izračunaj_vartipa_mapiranje(konstruktor.parametri, argumenti)
-    kompozicija = kompozicija_mapiranja(originalni_u_dani, mapiranje)
-    return apply_vartipa_mapping(kompozicija, funkcija_tipa)
+    # kompozicija = kompozicija_mapiranja(originalni_u_dani, mapiranje)
+    return apply_vartipa_mapping(mapiranje, funkcija_tipa)
 
 
 def funkcija_u_tip(pozvana, argumenti, scope, unutar):

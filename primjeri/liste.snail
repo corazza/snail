@@ -1,3 +1,20 @@
+def print(x: A) -> unit as
+    __print x;
+    return UNIT;
+enddef
+
+def println(x: A) -> unit as
+    __print x;
+    __print __newline;
+    return UNIT;
+enddef
+
+def input() -> int as
+    let x: int = 0;
+    __input x;
+    return x;
+enddef
+
 data List<A> as
     Nil,
     Concat(A, List<A>)
@@ -8,49 +25,46 @@ data Option<A> as
     Some(A)
 enddata
 
-def head<B>(xs: List<B>) -> Option<B> as
+def head(xs: List<A>) -> Option<A> as
     match xs as
         Concat(x, tail) => return Some(x),
         Nil => return None
     endmatch
 enddef
 
-def unesi_element<A>(n: int, xs: List<A>) -> List<A> as
-    let x: int = 0;
-    print "Unesite element ";
-    print n;
-    print ": ";
-    input x;
+def unesi_element(n: int, xs: List<A>) -> List<A> as
+    print("Unesite element ");
+    print(n);
+    print(": ");
+    let x: int = input();
     return Concat(x, xs);
 enddef
 
-def unesi_n_elemenata<A>(xs: List<A>, n: int) -> List<A> as
+def unesi_n_elemenata_rek(xs: List<A>, n: int) -> List<A> as
     if n == 0 then
         return xs;
     else
         xs = unesi_element(n, xs);
-        return unesi_n_elemenata(xs, n - 1);
+        return unesi_n_elemenata_rek(xs, n - 1);
     endif
 enddef
 
-let n: int = -1;
-let lista: List<int> = Concat(1, Nil);
+def unesi_n_elemenata(n: int) -> List<int> as
+    let lista: List<int> = Nil;
+    return unesi_n_elemenata_rek(lista, n);
+enddef
 
-print "Unesite broj elemenata: ";
-input n;
+print("Unesite broj elemenata: ");
+let n: int = input();
 
-lista = unesi_n_elemenata(lista, n);
+let lista: List<int> = unesi_n_elemenata(n);
 
+println("Unesena lista:");
+println(lista);
 
-print "Unesena lista:";
-print newline;
-print lista;
-print newline;
-print newline;
-
-print "Prvi element: ";
+print("Prvi element: ");
 
 match head(lista) as
-    None => print "nema ga",
-    Some(x) => print x
+    None => print("nema ga"),
+    Some(x) => print(x)
 endmatch

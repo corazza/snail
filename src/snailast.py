@@ -109,7 +109,7 @@ class Definiranje(AST):
     def typecheck(self, scope, unutar):
         tip = self.izraz.typecheck(scope, unutar)
         if not tipovi.equiv_types(tip, self.tip, scope, unutar):
-            raise SemantičkaGreška('tipovi se ne podudaraju')
+            raise SemantičkaGreška(f'{self.ime}:{self.tip} se ne podudara s {tip}')
         scope[self.ime] = tip
 
     def izvrši(self, mem, unutar):
@@ -188,7 +188,6 @@ class Konstruktor(AST):
 class Funkcija(AST):
     ime: 'IME'
     tip: 'tip'
-    vartipa: 'VELIKOIME*' # TODO FIX NEXT potrebno?
     parametri: 'Tipizirano*'
     tijelo: 'naredba*'
 
@@ -223,7 +222,6 @@ class Poziv(AST):
         pozvana = poziv.funkcija
         if pozvana is nenavedeno:
             pozvana = unutar  # rekurzivni poziv
-        parametri = list(map(lambda p: p.tip, pozvana.parametri))
         argumenti = [a.typecheck(scope, unutar) for a in poziv.argumenti]
 
         if isinstance(pozvana, Funkcija):
@@ -231,10 +229,11 @@ class Poziv(AST):
             #     if not tipovi.equiv_types(p, a, scope, unutar):
             #         raise SemantičkaGreška(
             #             f'očekivan tip {p}, a dan {a}')
+            # IPython.embed()
             return tipovi.funkcija_u_tip(pozvana, argumenti, scope, unutar)
         else:  # TODO ujedini funkcije i konstruktore
             assert(isinstance(pozvana, Konstruktor))
-            assert(len(argumenti) == len(parametri))
+            assert(len(argumenti) == len(pozvana.parametri))
             return tipovi.konstruktor_u_tip(pozvana, argumenti, scope, unutar)
 
     def vrijednost(poziv, mem, unutar):

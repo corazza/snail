@@ -17,6 +17,7 @@ python snail.py ../primjeri/liste.snail
 
 ## Featurei
 
+- `()` kao unit
 - bolji printevi
 - `__input` i `__print` internal komande, da se mogu napraviti `input()` i `print()` f-je
 - import

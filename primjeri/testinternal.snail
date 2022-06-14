@@ -2,24 +2,24 @@ data Pair<C, D> as
     Pa(C, D)
 enddata
 
-def print_both<A, B>(a: A, b: B) -> unit as
-    print "(";
-    print a;
-    print ", ";
-    print b;
-    print ")";
+def print(x: A) -> unit as
+    __print x;
     return UNIT;
 enddef
 
-def print_pair<A, B>(p: Pair<A, B>) -> unit as
+def println(x: A) -> unit as
+    __print x;
+    __print __newline;
+    return UNIT;
+enddef
+
+def treba_iste(p: Pair<A, A>) -> A as
     match p as
-        Pa(a, b) => print_both(a, b)
+        Pa(a, b) => return a
     endmatch
-    return UNIT;
 enddef
 
-// let p3: Pair<int, Pair<string, int>> = Pa(1, Pa(4, 3)); // TYPE ERROR!
-let p3: Pair<int, Pair<string, int>> = Pa(1, Pa("asdf", 3)); // OK
+let p: Pair<int, string> = Pa(1, "asdf");
 
-print "p3 = ";
-print_pair(p3);
+
+print(treba_iste(p));

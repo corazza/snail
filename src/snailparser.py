@@ -13,7 +13,6 @@ class P(Parser):
         p.imef = None
         p.parametrif = None
         p.tipf = None
-        p.vartipaf = None
         p.funkcije = Memorija(redefinicija=False)
         return Program(p.naredbe(KRAJ))
 
@@ -194,18 +193,10 @@ class P(Parser):
     def funkcija(p) -> 'Funkcija':
         staro_imef = p.imef
         stari_parametrif = p.parametrif
-        stare_vartipaf = p.vartipaf  # TODO FIX preimenuj u parametri_tipa
         stari_tipf = p.tipf
         # TODO istražiti: memorija u parseru je loša ideja, može li se ovo preseliti drugdje?
         ime = p >> T.IME
         p.imef = ime
-
-        if p >= T.MANJE:
-            vartipa = p.parametri_tipa()
-            p >> T.VECE
-        else:
-            vartipa = []
-        p.vartipaf = vartipa
 
         parametri = p.parametri()
         p.parametrif = parametri
@@ -214,13 +205,12 @@ class P(Parser):
         p.tipf = tip
         p >> T.AS
         tijelo = p.naredbe(T.ENDDEF, pojedi=True)
-        fja = Funkcija(ime, tip, vartipa, parametri, tijelo)
+        fja = Funkcija(ime, tip, parametri, tijelo)
         p.funkcije[ime] = fja
 
         p.imef = staro_imef
         p.parametrif = stari_parametrif
         p.tipf = stari_tipf
-        p.vartipaf = stare_vartipaf
 
         return fja
 
@@ -285,6 +275,8 @@ class P(Parser):
 
     def parametri(p) -> 'tipizirano*':
         p >> T.OTV
+        if p >= T.ZATV:
+            return []
         parametri = [p.tipizirano()]
         while p >= T.ZAREZ:
             parametri.append(p.tipizirano())
