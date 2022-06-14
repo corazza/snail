@@ -3,6 +3,7 @@ import glob
 
 from vepar import *
 
+import IPython # TODO remove
 
 def test_on_single(test, filename):
     with open(filename, 'r') as f:
@@ -30,3 +31,11 @@ def test_on(test):
 
 class Povratak(NelokalnaKontrolaToka):
     pass
+
+def token_repr(x):
+    if isinstance(x, Token):
+        return x.sadržaj
+    elif x == None:
+        return "_"
+    else:
+        return repr(x)

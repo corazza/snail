@@ -33,5 +33,6 @@ python parser.py liste
 
 ## Misc.
 
+- provjeriti i urediti BKG
 - dokumentacija ili komentari
 - nesekvencionalno referenciranje Data i def -- ovo radi?

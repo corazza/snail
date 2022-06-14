@@ -18,10 +18,10 @@ class Program(AST):
     def typecheck(self):
         global_scope = scopes.Scope()
         self.naredbe.typecheck(global_scope, None)
-        for a in global_scope.mem:
-            print(f'{a[0].sadržaj}:')
-            print(f'  {a[1]}')
-            print()
+        rows = filter(lambda a: not isinstance(a[1], Data), global_scope.mem)
+        for ime, tip in rows:
+            tip = token_repr(tip)
+            print(f'{ime.sadržaj}:  {tip}')
 
     def izvrši(self):
         rt.mem = Memorija()
@@ -167,6 +167,11 @@ class SloženaVrijednost(AST):
     konstruktor: 'Konstruktor'
     argumenti: 'izraz'
 
+    def __repr__(self):
+        ime = self.konstruktor.ime
+        argumenti = ", ".join(map(token_repr, self.argumenti))
+        return f"{ime}({argumenti})" if len(argumenti) > 0 else f"{ime}"
+
 
 class Konstruktor(AST):
     od: 'VELIKOIME'
@@ -259,6 +264,8 @@ class Vraćanje(AST):
     izraz: 'izraz?'
 
     def typecheck(self, scope, unutar):
+        if self.izraz ^ T.UNIT:
+            return Token(T.UNITT)
         tip_izraza = self.izraz.typecheck(scope, unutar)
         if not tipovi.equiv_types(tip_izraza, unutar.tip, scope, unutar):
             raise SemantičkaGreška(
@@ -385,11 +392,3 @@ class Infix(AST):
 class Tipizirano(AST):
     ime: 'IME'
     tip: 'tip'
-
-
-class UnitValue(AST):
-    def typecheck(self, scope, unutar):
-        return Token(T.UNITT)
-
-    def vrijednost(self, mem, unutar):
-        return self

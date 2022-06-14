@@ -14,12 +14,20 @@ class TipFunkcije(AST):
     tip: 'tip'  # return type
     parametri: 'tip*'
 
+    def __repr__(self):
+        parametri = ", ".join(map(token_repr, self.parametri))
+        tip = token_repr(self.tip)
+        return f"{parametri} -> {tip}"
 
 # TODO unificiraj sa funkcijama
 class TipKonstruktora(AST):
     tip: 'tip'  # return type
     parametri: 'tip*'
 
+    def __repr__(self):
+        parametri = ", ".join(map(token_repr, self.parametri))
+        tip = token_repr(self.tip)
+        return f"{parametri} -> {tip}"
 
 class SloženiTip(AST):
     """Ovo je pojednostavljeni Data(AST)."""
@@ -30,6 +38,11 @@ class SloženiTip(AST):
         for p in self.argumenti:
             p.typecheck(scope, unutar)
         return self
+
+    def __repr__(self):
+        ime = self.ime.sadržaj
+        argumenti = ", ".join(map(token_repr, self.argumenti))
+        return f"{ime}<{argumenti}>"
 
 
 def apply_vartipa_mapping(mapiranje, tip):
@@ -48,7 +61,7 @@ def apply_vartipa_mapping(mapiranje, tip):
 
 def izrazunaj_vartipa_mapiranje(parametar, argument):
     if isinstance(parametar, Token) and parametar ^ T.VARTIPA:
-        if (isinstance(argument, Token) and (argument ^ T.VARTIPA or argument ^ elementarni)) or argument == None:
+        if isinstance(argument, SloženiTip) or (isinstance(argument, Token) and (argument ^ T.VARTIPA or argument ^ elementarni)) or argument == None:
             return {parametar: argument}
     elif isinstance(parametar, SloženiTip):
         if isinstance(argument, SloženiTip) and len(parametar.argumenti) == len(argument.argumenti):
@@ -70,7 +83,6 @@ def izrazunaj_vartipa_mapiranje(parametar, argument):
                     raise SemantičkaGreška(
                         f'{složeno_mapiranje} već ima ključ {p} koji se ne mapira na {None}, a vrijednost {a} nije {složeno_mapiranje[p]}')
                 # else => a == None, i ne radimo ništa
-
         return složeno_mapiranje
 
     raise RuntimeError(

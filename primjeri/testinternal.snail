@@ -1,0 +1,6 @@
+// __print 1;
+
+let x: int = 1;
+let y: int = x;
+let z: unit = UNIT;
+print z;

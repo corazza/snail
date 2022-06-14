@@ -15,10 +15,12 @@ def head<B>(xs: List<B>) -> Option<B> as
     endmatch
 enddef
 
-def unesi_element<A>(xs: List<A>) -> List<A> as
+def unesi_element<A>(n: int, xs: List<A>) -> List<A> as
     let x: int = 0;
-    print "Unesite element: ";
-    __input x;
+    print "Unesite element ";
+    print n;
+    print ": ";
+    input x;
     return Concat(x, xs);
 enddef
 
@@ -26,7 +28,7 @@ def unesi_n_elemenata<A>(xs: List<A>, n: int) -> List<A> as
     if n == 0 then
         return xs;
     else
-        xs = unesi_element(xs);
+        xs = unesi_element(n, xs);
         return unesi_n_elemenata(xs, n - 1);
     endif
 enddef
@@ -35,7 +37,7 @@ let n: int = -1;
 let lista: List<int> = Concat(1, Nil);
 
 print "Unesite broj elemenata: ";
-__input n;
+input n;
 
 lista = unesi_n_elemenata(lista, n);
 

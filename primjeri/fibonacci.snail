@@ -22,7 +22,7 @@ def prvih_n_fib(n: int) -> unit as
     prvih_n_fib(n-1);
     print(fib(/* testiraj tu */n));
     print " "; /* opet test*/
-    return 0;
+    return UNIT;
 enddef
 
 let n: int = -1;

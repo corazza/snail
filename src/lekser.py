@@ -2,6 +2,8 @@ from vepar import *
 
 from util import *
 
+import IPython  # TODO remove
+
 
 class T(TipoviTokena):
     IF, THEN, ELSE, ENDIF, NEWLINE, DEF, AS, ENDDEF, RETURN =\
@@ -23,24 +25,31 @@ class T(TipoviTokena):
 
     class STRING(Token):
         def typecheck(self, scope, unutar):
-            return Token(T.STRING)
+            return Token(T.STRINGT)
 
         def vrijednost(self, mem, unutar):
             return self.sadržaj.strip('"')
 
+    class UNIT(Token):
+        def typecheck(self, scope, unutar):
+            return Token(T.UNITT)
+
+        def __repr__(self):
+            # Vraća self kao vrijednost, pa treba __repr__
+            return "()"
+
+        def vrijednost(self, mem, unutar):
+            return self
+
     class IME(Token):
         def typecheck(self, scope, unutar):
             return scope[self]
-            # if self in scope:
-            #     return scope[self]
-            # else:
-            #     return None # tip bi se trebao kasnije odlučiti
 
-        def vrijednost(self, mem, unutar):
-            if self in mem:
-                return mem[self]
-            else:
-                return rt.mem[self]
+        def vrijednost(self, scope, unutar):
+            return scope[self]
+
+        def __repr__(self):
+            return self.sadržaj
 
     class VELIKOIME(Token):
         def typecheck(self, scope, unutar):
@@ -48,6 +57,9 @@ class T(TipoviTokena):
 
         def vrijednost(self, mem, unutar):
             raise SemantičkaGreška('tipovi nisu vrijednosti')
+
+        def __repr__(self):
+            return self.sadržaj
 
     class VARTIPA(Token):
         def typecheck(self, scope, unutar):
@@ -58,6 +70,9 @@ class T(TipoviTokena):
 
         def vrijednost(self, mem, unutar):
             raise SemantičkaGreška('varijable tipova nisu vrijednosti')
+
+        def __repr__(self):
+            return self.sadržaj
 
 
 @lexer
@@ -95,10 +110,13 @@ def snail(lex):
             lex <= '"'
             yield lex.token(T.STRING)
         elif znak.isalpha():
-            if znak.isupper():
+            if znak.isupper() and lex > str.isupper:
+                lex * {str.isalpha}
+                yield lex.token(T.UNIT)
+            elif znak.isupper():
                 if lex > str.isalpha:
                     lex * {str.isalnum, '_'}
-                    yield lex.token(T.VELIKOIME)
+                    yield lex.literal_ili(T.VELIKOIME)
                 else:
                     lex * {str.isalnum, '_'}
                     yield lex.token(T.VARTIPA)
