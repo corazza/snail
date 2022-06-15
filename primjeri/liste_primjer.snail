@@ -1,5 +1,27 @@
 import "../std/liste.snail";
 
+def unesi_element(n: int, xs: List<A>) -> List<A> as
+    print("Unesite element ");
+    print(n);
+    print(": ");
+    let x: int = input();
+    return Concat(x, xs);
+enddef
+
+def unesi_n_elemenata_rek(xs: List<A>, n: int) -> List<A> as
+    if n == 0 then
+        return xs;
+    else
+        xs = unesi_element(n, xs);
+        return unesi_n_elemenata_rek(xs, n - 1);
+    endif
+enddef
+
+def unesi_n_elemenata(n: int) -> List<int> as
+    let lista: List<int> = Nil;
+    return unesi_n_elemenata_rek(lista, n);
+enddef
+
 print("Unesite broj elemenata: ");
 let n: int = input();
 
