@@ -1,0 +1,16 @@
+import "liste.snail";
+
+print("Unesite broj elemenata: ");
+let n: int = input();
+
+let lista: List<int> = unesi_n_elemenata(n);
+
+println("Unesena lista:");
+println(lista);
+
+print("Prvi element: ");
+
+match head(lista) as
+    None => print("nema ga"),
+    Some(x) => print(x)
+endmatch

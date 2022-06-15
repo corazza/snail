@@ -1,7 +1,10 @@
 import os
 import glob
 
+import IPython # TODO remove
+
 from vepar import *
+import lekser
 
 
 class Povratak(NelokalnaKontrolaToka):
@@ -15,6 +18,7 @@ def token_str(x):
         return "_"
     else:
         return str(x)
+
 
 def printanje_str(x):
     if isinstance(x, Token):

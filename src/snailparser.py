@@ -28,7 +28,7 @@ class P(Parser):
     def naredba(p, read_delim=True) -> 'pridruživanje|printanje|grananje':
         if ime := p >= T.IME:
             poziv = p.poziv_ili_pridruživanje(ime)
-            if read_delim:
+            if read_delim: # TODO izluci ovo van
                 p >> T.TOČKAZ
             return poziv
         elif p >= T.PRINT:
@@ -50,6 +50,11 @@ class P(Parser):
             if read_delim:
                 p >> T.TOČKAZ
             return let
+        elif p >= T.IMPORT:
+            imp = p.imp()
+            if read_delim:
+                p >> T.TOČKAZ
+            return imp
         elif p >= T.DATA:
             return p.definiranje_tipa()
         elif p >= T.MATCH:
@@ -68,6 +73,10 @@ class P(Parser):
             varijante.append(p.varijanta())
         p >> T.ENDMATCH
         return Match(izraz, varijante)
+
+    def imp(p) -> 'Import':
+        path = p >> T.STRING
+        return Import(path)
 
     def varijanta(p) -> 'Varijanta':
         izraz = p.pattern()
@@ -99,7 +108,7 @@ class P(Parser):
                 funkcija = nenavedeno
                 parametri = p.parametrif
             else:
-                raise SintaksnaGreška('nepoznata funkcija')
+                raise SintaksnaGreška(f'nepoznata funkcija {ime}')
             argumenti = p.argumenti(parametri)
             return Poziv(funkcija, argumenti)
 

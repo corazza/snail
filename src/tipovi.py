@@ -34,9 +34,9 @@ class SloženiTip(AST):
     ime: 'VELIKOIME'
     argumenti: 'tip*'
 
-    def typecheck(self, scope, unutar):
+    def typecheck(self, scope, unutar, meta):
         for p in self.argumenti:
-            p.typecheck(scope, unutar)
+            p.typecheck(scope, unutar, meta)
         return self
 
     def __str__(self):

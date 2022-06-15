@@ -6,8 +6,8 @@ import IPython  # TODO remove
 
 
 class T(TipoviTokena):
-    IF, THEN, ELSE, ENDIF, DEF, AS, ENDDEF, RETURN =\
-        'if', 'then', 'else', 'endif', 'def', 'as', 'enddef', 'return'
+    IF, THEN, ELSE, ENDIF, DEF, AS, ENDDEF =\
+        'if', 'then', 'else', 'endif', 'def', 'as', 'enddef'
     DATA, ENDDATA, MATCH, ENDMATCH = 'data', 'enddata', 'match', 'endmatch'
     PLUS, MINUS, PUTA, DIV = '+-*/'
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO, SLIJEDI = '<', '>', '<=', '>=', '==', '!=', '=>'
@@ -15,23 +15,24 @@ class T(TipoviTokena):
     LET, OFTYPE, FTYPE = 'let', ':', '->'
     INT, BOOL, STRINGT, UNITT = 'int', 'bool', 'string', 'unit'
     PRINT, INPUT, NEWLINE = '__print', '__input', '__newline'
+    RETURN, IMPORT = 'return', 'import'
 
     class BROJ(Token):
-        def typecheck(self, scope, unutar):
+        def typecheck(self, scope, unutar, meta):
             return Token(T.INT)
 
         def vrijednost(self, mem, unutar):
             return int(self.sadržaj)
 
     class STRING(Token):
-        def typecheck(self, scope, unutar):
+        def typecheck(self, scope, unutar, meta):
             return Token(T.STRINGT)
 
         def vrijednost(self, mem, unutar):
             return self.sadržaj.strip('"')
 
     class UNIT(Token):
-        def typecheck(self, scope, unutar):
+        def typecheck(self, scope, unutar, meta):
             return Token(T.UNITT)
 
         def __str__(self):
@@ -42,7 +43,7 @@ class T(TipoviTokena):
             return self
 
     class IME(Token):
-        def typecheck(self, scope, unutar):
+        def typecheck(self, scope, unutar, meta):
             return scope[self]
 
         def vrijednost(self, scope, unutar):
@@ -52,7 +53,7 @@ class T(TipoviTokena):
             return self.sadržaj
 
     class VELIKOIME(Token):
-        def typecheck(self, scope, unutar):
+        def typecheck(self, scope, unutar, meta):
             raise SemantičkaGreška('tipovi nisu vrijednosti')
 
         def vrijednost(self, mem, unutar):
@@ -62,7 +63,7 @@ class T(TipoviTokena):
             return self.sadržaj
 
     class VARTIPA(Token):
-        def typecheck(self, scope, unutar):
+        def typecheck(self, scope, unutar, meta):
             """Shvaćeno je da se zapravo type checka vanjski kontekst, tj. postojanje VARTIPA"""
             if self not in scope:
                 raise SemantičkaGreška(f'nije uvedena varijabla {self} za tip')
@@ -130,15 +131,9 @@ def snail(lex):
             lex.prirodni_broj(znak)
             yield lex.token(T.BROJ)
         else:
-            # print('here1')
-            # lex * {str.isalnum, '_'}
-            # print('here2')
             yield lex.literal(T)
 
 
 if __name__ == "__main__":
     from util import test_on
     test_on(snail)
-
-# prikaz(F := P(ulaz))
-# prikaz(F := F.optim())

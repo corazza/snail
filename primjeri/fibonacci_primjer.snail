@@ -1,3 +1,5 @@
+import "io.snail";
+
 def fib(n: int) -> int as // vrati n-ti fibonaccijev br.
     if n == 1 then
         return 0;
@@ -12,7 +14,7 @@ enddef
 
 def prvih_n_fib(n: int) -> unit as
     if n == 0 then
-        return 0;
+        return UNIT;
     endif /* test
 
     viselinijskih
@@ -21,11 +23,11 @@ def prvih_n_fib(n: int) -> unit as
 
     prvih_n_fib(n-1);
     print(fib(/* testiraj tu */n));
-    print " "; /* opet test*/
+    print(" ");
     return UNIT;
 enddef
 
 let n: int = -1;
-print "unesite n: ";
-input n;
+print("unesite n: ");
+n = input();
 prvih_n_fib(n);

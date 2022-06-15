@@ -1,0 +1,45 @@
+import "parovi.snail";
+import "io.snail";
+
+def dot(a: Pair<int, int>, b: Pair<int, int>) -> int as
+    let x1: int = first(a);
+    let y1: int = second(a);
+    let x2: int = first(b);
+    let y2: int = second(b);
+    return x1 * x2 + y1 * y2;
+enddef
+
+def input_pair() -> Pair<int, int> as
+    print("Unesite x: ");
+    let x: int = input();
+    print("Unesite y: ");
+    let y: int = input();
+    return Pa(x, y);
+enddef
+
+let p1: Pair<int, int> = input_pair();
+let p2: Pair<int, int> = Pa(1, 6);
+let p3: Pair<int, Pair<int, int>> = Pa(1, Pa(2, 3));
+let p4: Pair<int, string> = Pa(1, "asdf");
+
+print("<");
+print(p1);
+print("|");
+print(p2);
+print(">");
+print(" = ");
+println(dot(p1, p2));
+
+print("p3 = ");
+print(p3);
+println("");
+print("p4 = ");
+print(p4);
+println("");
+
+// let p5: Pair<int, Pair<string, int>> = Pa(1, Pa(4, 3)); // TYPE ERROR!
+let p5: Pair<int, Pair<string, int>> = Pa(1, Pa("asdf", 3)); // OK
+
+print("p5 = ");
+print(p3);
+println("");

@@ -4,9 +4,12 @@
 
 import IPython  # TODO remove
 
+import os
 from vepar import *
 
 from lekser import *
+
+import snailparser
 
 import scopes
 import tipovi
@@ -15,26 +18,44 @@ import tipovi
 class Program(AST):
     naredbe: 'Naredbe'
 
-    def typecheck(self):
+    def typecheck(self, filename):
+        directory = os.path.dirname(os.path.realpath(filename))
+        meta = {'directory': directory, 'filename': filename}
         global_scope = scopes.Scope()
-        self.naredbe.typecheck(global_scope, None)
+        self.naredbe.typecheck(global_scope, None, meta)
         return filter(lambda a: not isinstance(a[1], Data), global_scope.mem)
 
-    def izvrši(self):
+    def izvrši(self, filename):
+        directory = os.path.dirname(os.path.realpath(filename))
         rt.mem = Memorija()
+        rt.mem[Token(T.IME, '__file__')] = Token(T.STRING, filename)
+        rt.mem[Token(T.IME, '__dir__')] = Token(T.STRING, directory)
         self.naredbe.izvrši(rt.mem, None)
 
 
 class Naredbe(AST):
     naredbe: 'naredba*'
 
-    def typecheck(self, scope, unutar):
+    def typecheck(self, scope, unutar, meta):
         for naredba in self.naredbe:
-            naredba.typecheck(scope, unutar)
+            naredba.typecheck(scope, unutar, meta)
 
     def izvrši(self, mem, unutar):
         for naredba in self.naredbe:
             naredba.izvrši(mem, unutar)
+
+
+class Import(AST):
+    path: 'STRING'
+
+    def typecheck(self, scope, unutar, meta):
+        # with open(meta['directory'] + '/' + self.path.sadržaj.strip('"'), 'r') as f:
+        #     src = f.read()
+        #     program = snailparser.P(src)
+        return
+
+    def izvrši(self, mem, unutar):
+        return
 
 
 class Match(AST):
@@ -51,12 +72,12 @@ class Match(AST):
         if not izvršeno:  # TODO ovo u typecheck!!!
             raise SemantičkaGreška("nisu pokriveni svi slučajevi")
 
-    def typecheck(self, scope, unutar):
-        tip_izraza = self.izraz.typecheck(scope, unutar)
+    def typecheck(self, scope, unutar, meta):
+        tip_izraza = self.izraz.typecheck(scope, unutar, meta)
         for v in self.varijante:
             v.ako.konstruktor = tipovi.tip_u_konstruktor(
                 tip_izraza, v.ako.konstruktor, scope, unutar)
-            if not tipovi.equiv_types(tip_izraza, v.typecheck(scope, unutar), scope, unutar):
+            if not tipovi.equiv_types(tip_izraza, v.typecheck(scope, unutar, meta), scope, unutar):
                 # TODO subclass TypeError
                 raise SemantičkaGreška(
                     f'matchana vrijednost se ne podudara s varijantom u tipu')
@@ -74,7 +95,7 @@ class Varijanta(AST):
             local[var] = vrijednost
         self.onda.izvrši(local, unutar)
 
-    def typecheck(self, scope, unutar):
+    def typecheck(self, scope, unutar, meta):
         """Ova metoda signalizira Matchu tip 'ako' polja u varijanti,
            iako bi bilo logičnije da se što više elemenata shvati kao
            izraz a ne naredba, pa bi onda tip varijante zapravo bio tip
@@ -83,8 +104,8 @@ class Varijanta(AST):
         lokalni = scopes.Scope(scope)
         for (varijabla, parametar) in zip(self.ako.varijable, self.ako.konstruktor.parametri):
             lokalni[varijabla] = parametar
-        self.onda.typecheck(lokalni, unutar)
-        return self.ako.typecheck(lokalni, unutar)
+        self.onda.typecheck(lokalni, unutar, meta)
+        return self.ako.typecheck(lokalni, unutar, meta)
 
 
 class Pattern(AST):
@@ -97,7 +118,7 @@ class Pattern(AST):
     def does_match(self, vrijednost, mem, unutar):
         return self.konstruktor.ime == vrijednost.konstruktor.ime
 
-    def typecheck(self, scope, unutar):
+    def typecheck(self, scope, unutar, meta):
         return tipovi.konstruktor_u_tip(self.konstruktor, [None] * len(self.konstruktor.parametri), scope, unutar)
 
 
@@ -106,10 +127,11 @@ class Definiranje(AST):
     tip: 'T'
     izraz: 'izraz'
 
-    def typecheck(self, scope, unutar):
-        tip = self.izraz.typecheck(scope, unutar)
+    def typecheck(self, scope, unutar, meta):
+        tip = self.izraz.typecheck(scope, unutar, meta)
         if not tipovi.equiv_types(tip, self.tip, scope, unutar):
-            raise SemantičkaGreška(f'{self.ime}:{self.tip} se ne podudara s {tip}')
+            raise SemantičkaGreška(
+                f'{self.ime}:{self.tip} se ne podudara s {tip}')
         scope[self.ime] = tip
 
     def izvrši(self, mem, unutar):
@@ -122,13 +144,13 @@ class Pridruživanje(AST):
     ime: 'IME'
     izraz: 'izraz'
 
-    def typecheck(self, scope, unutar):
+    def typecheck(self, scope, unutar, meta):
         if self.ime not in scope:
             raise SemantičkaGreška(
                 f'korištenje {self.ime} prije definiranja (let {self.ime}: TIP = IZRAZ;)')
 
         moj_tip = scope[self.ime]
-        pridruživanje_tip = self.izraz.typecheck(scope, unutar)
+        pridruživanje_tip = self.izraz.typecheck(scope, unutar, meta)
 
         if not tipovi.equiv_types(moj_tip, pridruživanje_tip, scope, unutar):
             raise SemantičkaGreška(
@@ -146,13 +168,13 @@ class Data(AST):
     parametri: 'IME*'
     konstruktori: 'konstruktor*'
 
-    def typecheck(self, scope, unutar):
+    def typecheck(self, scope, unutar, meta):
         scope[self.ime] = self
         lokalni = scopes.Scope(scope)
         for p in self.parametri:
             lokalni[p] = p
         for konstruktor in self.konstruktori:
-            tip = konstruktor.typecheck(lokalni, unutar)
+            tip = konstruktor.typecheck(lokalni, unutar, meta)
             scope[konstruktor.ime] = tip
 
     def izvrši(self, mem, unutar):
@@ -175,8 +197,8 @@ class Konstruktor(AST):
     ime: 'VELIKOIME'
     parametri: 'tip*'
 
-    def typecheck(self, scope, unutar):
-        parametri = [p.typecheck(scope, unutar) for p in self.parametri]
+    def typecheck(self, scope, unutar, meta):
+        parametri = [p.typecheck(scope, unutar, meta) for p in self.parametri]
         složeni_tip = tipovi.konstruktor_u_tip(
             self, self.parametri, scope, unutar)
         return tipovi.TipKonstruktora(složeni_tip, parametri)
@@ -191,11 +213,11 @@ class Funkcija(AST):
     parametri: 'Tipizirano*'
     tijelo: 'naredba*'
 
-    def typecheck(funkcija, scope, unutar):
+    def typecheck(funkcija, scope, unutar, meta):
         lokalni = scopes.Scope(scope)
         for p in funkcija.parametri:
             lokalni[p.ime] = p.tip
-        funkcija.tijelo.typecheck(lokalni, funkcija)
+        funkcija.tijelo.typecheck(lokalni, funkcija, meta)
         parametri = [tipizirano.tip for tipizirano in funkcija.parametri]
         tip = tipovi.TipFunkcije(funkcija.tip, parametri)
         scope[funkcija.ime] = tip
@@ -218,11 +240,11 @@ class Poziv(AST):
     funkcija: 'Funkcija?'
     argumenti: 'izraz*'
 
-    def typecheck(poziv, scope, unutar):
+    def typecheck(poziv, scope, unutar, meta):
         pozvana = poziv.funkcija
         if pozvana is nenavedeno:
             pozvana = unutar  # rekurzivni poziv
-        argumenti = [a.typecheck(scope, unutar) for a in poziv.argumenti]
+        argumenti = [a.typecheck(scope, unutar, meta) for a in poziv.argumenti]
 
         if isinstance(pozvana, Funkcija):
             # for (p, a) in zip(parametri, argumenti):
@@ -260,11 +282,11 @@ class Poziv(AST):
 class Vraćanje(AST):
     izraz: 'izraz?'
 
-    def typecheck(self, scope, unutar):
+    def typecheck(self, scope, unutar, meta):
         if self.izraz ^ T.UNIT:
             tip_izraza = Token(T.UNITT)
         else:
-            tip_izraza = self.izraz.typecheck(scope, unutar)
+            tip_izraza = self.izraz.typecheck(scope, unutar, meta)
         if not tipovi.equiv_types(tip_izraza, unutar.tip, scope, unutar):
             raise SemantičkaGreška(
                 f'funkcija {unutar.ime.sadržaj} treba vratiti {unutar.tip.sadržaj} (dano: {tip_izraza.sadržaj})')
@@ -281,7 +303,7 @@ class Vraćanje(AST):
 class Printanje(AST):
     sadržaj: 'izraz|STRING#|NEWLINE'
 
-    def typecheck(self, scope, unutar):
+    def typecheck(self, scope, unutar, meta):
         return
 
     def izvrši(self, mem, unutar):
@@ -294,7 +316,7 @@ class Printanje(AST):
 class Unos(AST):
     ime: 'IME'
 
-    def typecheck(self, scope, unutar):
+    def typecheck(self, scope, unutar, meta):
         if not tipovi.equiv_types(scope[self.ime], Token(T.INT), scope, unutar):
             raise SemantičkaGreška(f'unos mora biti u varijablu tipa {T.INT}')
         scope[self.ime] = Token(T.INT)
@@ -308,13 +330,13 @@ class Grananje(AST):
     ako: 'naredba+'
     inače: '(naredba+)?'
 
-    def typecheck(self, scope, unutar):
-        tip = self.provjera.typecheck(scope, unutar)
+    def typecheck(self, scope, unutar, meta):
+        tip = self.provjera.typecheck(scope, unutar, meta)
         if not tipovi.equiv_types(tip, Token(T.BOOL), scope, unutar):
             raise SemantičkaGreška(f'provjera mora biti tipa {T.BOOL}')
-        self.ako.typecheck(scope, unutar)
+        self.ako.typecheck(scope, unutar, meta)
         if self.inače != nenavedeno:
-            self.inače.typecheck(scope, unutar)
+            self.inače.typecheck(scope, unutar, meta)
 
     def izvrši(self, mem, unutar):
         vrijednost = self.provjera.vrijednost(mem, unutar)
@@ -329,13 +351,13 @@ class Infix(AST):
     lijevi: 'faktor|član|Infix'  # TODO provjeri ima li ova deklaracija smisla
     desni: 'faktor|član|Infix'
 
-    def typecheck(self, scope, unutar):
+    def typecheck(self, scope, unutar, meta):
         op = self.operator
         if self.lijevi == nenavedeno:
             lijevi_tip = Token(T.INT)
         else:
-            lijevi_tip = self.lijevi.typecheck(scope, unutar)
-        desni_tip = self.desni.typecheck(scope, unutar)
+            lijevi_tip = self.lijevi.typecheck(scope, unutar, meta)
+        desni_tip = self.desni.typecheck(scope, unutar, meta)
 
         if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV, T.MANJE, T.JMANJE, T.VECE, T.JVECE}:
             if not (tipovi.equiv_types(lijevi_tip, Token(T.INT), scope, unutar) and tipovi.equiv_types(desni_tip, Token(T.INT), scope, unutar)):

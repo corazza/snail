@@ -1,17 +1,8 @@
+import "std.snail";
+
 data Pair<C, D> as
     Pa(C, D)
 enddata
-
-def print(x: A) -> unit as
-    __print x;
-    return UNIT;
-enddef
-
-def println(x: A) -> unit as
-    __print x;
-    __print __newline;
-    return UNIT;
-enddef
 
 def treba_iste(p: Pair<A, A>) -> A as
     match p as
@@ -19,7 +10,8 @@ def treba_iste(p: Pair<A, A>) -> A as
     endmatch
 enddef
 
-let p: Pair<int, string> = Pa(1, "asdf");
-
+// let p: Pair<int, string> = Pa(1, "asdf"); // TYPE ERROR
+// let p: Pair<int, int> = Pa(1, "asdf"); // TYPE ERROR
+let p: Pair<int, int> = Pa(1, 2); // OK
 
 print(treba_iste(p));

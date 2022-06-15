@@ -1,19 +1,4 @@
-def print(x: A) -> unit as
-    __print x;
-    return UNIT;
-enddef
-
-def println(x: A) -> unit as
-    __print x;
-    __print __newline;
-    return UNIT;
-enddef
-
-def input() -> int as
-    let x: int = 0;
-    __input x;
-    return x;
-enddef
+import "io.snail";
 
 data List<A> as
     Nil,
@@ -53,18 +38,3 @@ def unesi_n_elemenata(n: int) -> List<int> as
     let lista: List<int> = Nil;
     return unesi_n_elemenata_rek(lista, n);
 enddef
-
-print("Unesite broj elemenata: ");
-let n: int = input();
-
-let lista: List<int> = unesi_n_elemenata(n);
-
-println("Unesena lista:");
-println(lista);
-
-print("Prvi element: ");
-
-match head(lista) as
-    None => print("nema ga"),
-    Some(x) => print(x)
-endmatch

@@ -1,33 +1,8 @@
+import "io.snail";
+
 data Pair<C, D> as
     Pa(C, D)
 enddata
-
-def print(x: A) -> unit as
-    __print x;
-    return UNIT;
-enddef
-
-def println(x: A) -> unit as
-    __print x;
-    __print __newline;
-    return UNIT;
-enddef
-
-def print_both(a: A, b: B) -> unit as
-    print("(");
-    print(a);
-    print(", ");
-    print(b);
-    print(")");
-    return UNIT;
-enddef
-
-def print_pair(p: Pair<A, B>) -> unit as
-    match p as
-        Pa(a, b) => print_both(a, b)
-    endmatch
-    return UNIT;
-enddef
 
 def first(p: Pair<A, B>) -> A as
     match p as
@@ -40,38 +15,3 @@ def second(p: Pair<A, B>) -> B as
         Pa(a, b) => return b
     endmatch
 enddef
-
-def dot(a: Pair<int, int>, b: Pair<int, int>) -> int as
-    let x1: int = first(a);
-    let y1: int = second(a);
-    let x2: int = first(b);
-    let y2: int = second(b);
-    return x1 * x2 + y1 * y2;
-enddef
-
-let p1: Pair<int, int> = Pa(1, 6);
-let p2: Pair<int, int> = Pa(1, 6);
-let p3: Pair<int, Pair<int, int>> = Pa(1, Pa(2, 3));
-let p4: Pair<int, string> = Pa(1, "asdf");
-
-print("<");
-print_pair(p1);
-print("|");
-print_pair(p2);
-print(">");
-print(" = ");
-println(dot(p1, p2));
-
-print("p3 = ");
-print_pair(p3);
-println("");
-print("p4 = ");
-print_pair(p4);
-println("");
-
-// let p5: Pair<int, Pair<string, int>> = Pa(1, Pa(4, 3)); // TYPE ERROR!
-let p5: Pair<int, Pair<string, int>> = Pa(1, Pa("asdf", 3)); // OK
-
-print("p5 = ");
-print_pair(p3);
-println("");
