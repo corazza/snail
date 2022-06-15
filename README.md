@@ -18,7 +18,7 @@ python snail.py ../primjeri/liste.snail
 ## Featurei
 
 - `()` kao unit
-- import / preprocessor
+- pravi import a ne preprocessor
 - funkcije kao vrijednosti
 
 ## Featurei (teško)
