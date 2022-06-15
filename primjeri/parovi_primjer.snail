@@ -1,5 +1,5 @@
-import "parovi.snail";
-import "io.snail";
+import "../std/parovi.snail";
+import "../std/io.snail";
 
 def dot(a: Pair<int, int>, b: Pair<int, int>) -> int as
     let x1: int = first(a);

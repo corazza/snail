@@ -1,4 +1,4 @@
-import "liste.snail";
+import "../std/liste.snail";
 
 print("Unesite broj elemenata: ");
 let n: int = input();

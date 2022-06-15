@@ -1,4 +1,4 @@
-import "io.snail";
+import "../std/io.snail";
 
 def fib(n: int) -> int as // vrati n-ti fibonaccijev br.
     if n == 1 then
