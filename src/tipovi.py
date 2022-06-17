@@ -20,6 +20,8 @@ class TipFunkcije(AST):
         return f"({parametri}) -> {tip}"
 
 # TODO unificiraj sa funkcijama
+
+
 class TipKonstruktora(AST):
     tip: 'tip'  # return type
     parametri: 'tip*'
@@ -28,6 +30,7 @@ class TipKonstruktora(AST):
         parametri = ", ".join(map(token_str, self.parametri))
         tip = token_str(self.tip)
         return f"({parametri}) -> {tip}" if len(parametri) > 0 else f"{tip}"
+
 
 class SloženiTip(AST):
     """Ovo je pojednostavljeni Data(AST)."""
@@ -47,7 +50,7 @@ class SloženiTip(AST):
 
 def apply_vartipa_mapping(mapiranje, tip):
     if isinstance(tip, Token):
-        if tip ^ T.VARTIPA:        
+        if tip ^ T.VARTIPA:
             return mapiranje[tip] if tip in mapiranje else None
         else:
             return tip
@@ -66,7 +69,7 @@ def izračunaj_vartipa_mapiranje(parametar, argument):
         if isinstance(argument, SloženiTip) or (isinstance(argument, Token) and (argument ^ T.VARTIPA or argument ^ elementarni)) or argument == None:
             return {parametar: argument}
     elif isinstance(parametar, Token) and parametar ^ elementarni and (isinstance(argument, Token) and argument ^ elementarni or argument == None):
-        return {} # TODO FIX URGENT kad se dolazi ovdje?
+        return {}  # TODO FIX URGENT kad se dolazi ovdje?
     elif isinstance(parametar, SloženiTip):
         if isinstance(argument, SloženiTip) and parametar.ime == argument.ime and len(parametar.argumenti) == len(argument.argumenti):
             return izračunaj_vartipa_mapiranje(parametar.argumenti, argument.argumenti)
@@ -106,26 +109,11 @@ def tip_u_konstruktor(funkcija_tipa, konstruktor, scope, unutar):
     return snailast.Konstruktor(konstruktor.od, konstruktor.ime, parametri)
 
 
-def kompozicija_mapiranja(iz, u):
-    mapiranje = {}
-    for (k, v) in iz.items():
-        if v not in u:
-            IPython.embed()
-        assert(v in u)
-        mapiranje[k] = u[v]
-    return mapiranje
-
-
 def konstruktor_u_tip(konstruktor, argumenti, scope, unutar):
     """Vrati funkciju tipa za konstruktor kad se primijene dani argumenti."""
     tip = scope[konstruktor.od]
     funkcija_tipa = SloženiTip(tip.ime, tip.parametri)
-    # originalni_konstruktor = tip_u_konstruktor( # TODO FIX NEXT potrebno? mislim da se ne stvaraju novi konstruktori
-    #     funkcija_tipa, konstruktor, scope, unutar)
-    # originalni_u_dani = izračunaj_vartipa_mapiranje(
-    #     originalni_konstruktor.parametri, konstruktor.parametri)
     mapiranje = izračunaj_vartipa_mapiranje(konstruktor.parametri, argumenti)
-    # kompozicija = kompozicija_mapiranja(originalni_u_dani, mapiranje)
     return apply_vartipa_mapping(mapiranje, funkcija_tipa)
 
 
@@ -149,6 +137,4 @@ def equiv_types(a, b, scope, unutar):
     elif isinstance(a, SloženiTip) and isinstance(b, SloženiTip):
         return all([equiv_types(aarg, barg, scope, unutar)
                     for (aarg, barg) in zip(a.argumenti, b.argumenti)])
-
-    # IPython.embed()
     raise SemantičkaGreška(f'greška u provjeravanju ekvivalencije {a} i {b}')

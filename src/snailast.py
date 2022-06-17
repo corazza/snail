@@ -2,8 +2,6 @@
 # Program: naredbe: [naredba]
 # naredba:
 
-import IPython  # TODO remove
-
 import os
 from vepar import *
 

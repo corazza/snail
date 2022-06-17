@@ -1,7 +1,6 @@
 from vepar import *
 import sys
 import snailparser
-import IPython  # TODO remove
 import os
 
 import util
@@ -12,6 +11,7 @@ def justread(filename):
     filename = os.path.realpath(filename)
     with open(filename, 'r') as f:
         return f.read()
+
 
 def preprocess_rek(filename, imported):
     directory = os.path.dirname(os.path.realpath(filename))
@@ -29,7 +29,8 @@ def preprocess_rek(filename, imported):
                 import_filename = os.path.realpath(import_filename)
 
                 if import_filename not in imported:
-                    other_preprocessed = preprocess_rek(import_filename, imported)
+                    other_preprocessed = preprocess_rek(
+                        import_filename, imported)
                     lines.extend(other_preprocessed)
             else:
                 lines.append(line)

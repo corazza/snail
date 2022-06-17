@@ -1,8 +1,6 @@
 import os
 import glob
 
-import IPython # TODO remove
-
 from vepar import *
 import lekser
 

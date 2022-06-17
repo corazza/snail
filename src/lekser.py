@@ -2,8 +2,6 @@ from vepar import *
 
 from util import *
 
-import IPython  # TODO remove
-
 
 class T(TipoviTokena):
     IF, THEN, ELSE, ENDIF, DEF, AS, ENDDEF =\

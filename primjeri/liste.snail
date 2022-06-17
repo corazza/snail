@@ -1,4 +1,5 @@
 import "../std/liste.snail";
+import "../std/io.snail";
 
 def unesi_element(n: int, xs: List<A>) -> List<A> as
     print("Unesite element ");

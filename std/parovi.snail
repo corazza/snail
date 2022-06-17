@@ -1,5 +1,3 @@
-import "io.snail";
-
 data Pair<C, D> as
     Pa(C, D)
 enddata

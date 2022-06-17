@@ -24,7 +24,6 @@ python snail.py ../primjeri/liste.snail
 ## Featurei (teško)
 
 - pretvori naredbe u izraze
-- block scoping
 
 ## Compiler UX
 

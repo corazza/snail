@@ -28,7 +28,7 @@ class P(Parser):
     def naredba(p, read_delim=True) -> 'pridruživanje|printanje|grananje':
         if ime := p >= T.IME:
             poziv = p.poziv_ili_pridruživanje(ime)
-            if read_delim: # TODO izluci ovo van
+            if read_delim:  # TODO izluci ovo van
                 p >> T.TOČKAZ
             return poziv
         elif p >= T.PRINT:
