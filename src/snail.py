@@ -16,7 +16,7 @@ def justread(filename):
 def preprocess_rek(filename, imported):
     directory = os.path.dirname(os.path.realpath(filename))
     filename = os.path.realpath(filename)
-    print(directory, ', ', filename)
+    # print(filename)
     imported.append(filename)
     with open(filename, 'r') as f:
         src = f.read()
@@ -44,7 +44,7 @@ def preprocess(filename):
 
 def main():
     filename = os.path.realpath(sys.argv[1])
-    print('=== preprocessing ===')
+    # print('=== preprocessing ===')
     src = preprocess(filename)
     # src = justread(filename)
     program = snailparser.P(src)
