@@ -1,0 +1,4 @@
+data Option<A> as
+    None,
+    Some(A)
+enddata

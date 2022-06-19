@@ -1,20 +1,13 @@
-# snail
+# Snaskell
 
-Naša implementacija je inspirirana Haskellom i proširuje [Snail](https://www.cs.rpi.edu/courses/fall01/modcomp/project2.pdf) dodavanjem sljedećih mogućnosti:
+Naša implementacija [Snaila](https://www.cs.rpi.edu/courses/fall01/modcomp/project2.pdf) koju zovemo Snaskell je inspirirana Haskellom i proširuje Snail dodavanjem sljedećih mogućnosti:
 
-- korisnički tipova podataka i type checking
-- polimorfizam (templates/generics)
-- elementarni pattern matching
-- definiranje funkcija (može rekurzivnih)
+1. korisnički tipova podataka i type checking
+2. polimorfizam (templates/generics)
+3. jednostavni pattern matching
+4. definiranje funkcija (može rekurzivnih)
 
-Primjer:
-
-```bash
-cd src
-python snail.py ../primjeri/liste.snail
-```
-
-U outputu se mogu vidjeti informacije o tipovima varijabli i funkcija:
+Primjer (`python snail.py ../primjeri/liste.snail` u `src/`):
 
 ```
 === typechecking ===
@@ -42,8 +35,60 @@ Concat(3, Concat(2, Concat(1, Nil)))
 Prvi element: 3
 ```
 
-Naravno dodatne mogućnosti naše implementacije su ograničene u usporedbi s pravim sustavima:
+Naravno mogućnosti Snaskella su ograničene u usporedbi s pravim sustavima:
 
 1. (Skoro) sve oznake tipova se moraju eksplicitno pisati, dok se u Hindley–Milner sistemu (kojeg Haskell proširuje) ne mora nijedna.
-2. Varijable tipova, koje ostvaruju polimorfizam, ne mogu se restringirati (type classes u Haskellu dodaju tu mogućnost).
+2. Varijable tipova, koje ostvaruju polimorfizam, ne mogu se restringirati (type klase u Haskellu dodaju tu mogućnost).
 3. Kod pattern matchinga, obrasci ne mogu biti proizovoljne vrijednosti (dobrog tipa), već samo konstruktori koji eksplicitno navode slobodne varijable.
+
+U direktorijima `std/` i `primjeri/` se mogu vidjeti demonstracije navedenih mogućnosti, koje ćemo sada detaljnije objasniti.
+
+## Korisnički tipovi
+
+Korisnički tipovi se definiraju koristeći `data ... as ... enddata` sintaksu,
+što ćemo pokazati kroz primjer tipa `Option`.
+Između `as` i `enddata` nalazi se popis konstruktora za tip.
+Konstruktor sadrži popis 0 ili više tipova, koji čine polja konstruktora.
+
+```
+data Option<A> as
+    None,
+    Some(A)
+enddata
+```
+
+`Option<A>` se može shvatiti kao spremnik koji može ili biti prazan (`None`)
+ili sadržavati točno jednu vrijednost tipa `A` (`Some`).
+`Option<A>` može poslužiti za predstavljanje rezultata operacija koje ne moraju uspjeti.
+
+Tijelo definicije `Option` sadrži dva konstruktora, `None` i `Some`.
+Konstruktor `None` se može shvatiti kao vrijednost tipa `Option<A>` za bilo koji `A` (tj. `None : Option<_>`),
+a `Some` se može shvatiti kao funkcija koja prima `A` i vraća `Option<A>`.
+
+`A` je varijabla tipa i odnosi se na neki konkretni tip, poput `int` ili `string`.
+Na primjer, vrijednost `Some(1)` je tipa `Option<int>`.
+
+Moguće je definirati rekurzivne strukture podataka:
+
+```
+data List<A> as
+    Nil,
+    Concat(A, List<A>)
+enddata
+```
+
+`Nil` predstavlja bazni slučaj,
+a `Concat(A, List<A>)` predstavlja vrijednost tipa `A` koja je dodana na početak liste tipa `List<A>`.
+
+## Type checking
+
+Type checking se odvija statički, prije izvršavanja programa, te osigurava sljedeće.
+
+1. Da se dani argumenti poklapaju s parametrima funkcija u tipu.
+2. Da funkcije vraćaju tip dobre vrijednosti (kakav je definiran).
+3. 
+
+
+println(Concat(1, Concat(2, Nil))); // OK
+// println(Concat(1, Concat("asdf", Nil))); // type error!
+

@@ -37,7 +37,7 @@ print("p4 = ");
 print(p4);
 println("");
 
-// let p5: Pair<int, Pair<string, int>> = Pa(1, Pa(4, 3)); // TYPE ERROR!
+// let p5: Pair<int, Pair<string, int>> = Pa(1, Pa(4, 3)); // type error!
 let p5: Pair<int, Pair<string, int>> = Pa(1, Pa("asdf", 3)); // OK
 
 print("p5 = ");

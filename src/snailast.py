@@ -67,11 +67,12 @@ class Match(AST):
             if v.ako.does_match(vrijednost, scope, unutar):
                 v.izvrši(vrijednost, scope, unutar)
                 izvršeno = True
-        if not izvršeno:  # TODO ovo u typecheck!!!
-            raise SemantičkaGreška("nisu pokriveni svi slučajevi")
+        assert(izvršeno) # pokreiveno u typecheck
 
     def typecheck(self, scope, unutar, meta):
         tip_izraza = self.izraz.typecheck(scope, unutar, meta)
+        dtip = scope[tip_izraza.ime]
+        pojave_konstruktora = {x.ime: 0 for x in dtip.konstruktori}
         for v in self.varijante:
             v.ako.konstruktor = tipovi.tip_u_konstruktor(
                 tip_izraza, v.ako.konstruktor, scope, unutar)
@@ -79,6 +80,11 @@ class Match(AST):
                 # TODO subclass TypeError
                 raise SemantičkaGreška(
                     f'matchana vrijednost se ne podudara s varijantom u tipu')
+            pojave_konstruktora[v.ako.konstruktor.ime] += 1
+        for pojava, puta in pojave_konstruktora.items():
+            if puta == 0:
+                raise SemantičkaGreška(f'konstruktor {pojava} se ne pojavljuje u match naredbi')
+
 
 
 class Varijanta(AST):

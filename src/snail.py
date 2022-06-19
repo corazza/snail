@@ -39,7 +39,7 @@ def preprocess_rek(filename, imported):
 
 def preprocess(filename):
     lines = preprocess_rek(filename, [])
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def main():

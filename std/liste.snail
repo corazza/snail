@@ -1,11 +1,8 @@
+import "opcija.snail"
+
 data List<A> as
     Nil,
     Concat(A, List<A>)
-enddata
-
-data Option<A> as
-    None,
-    Some(A)
 enddata
 
 def head(xs: List<A>) -> Option<A> as

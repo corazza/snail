@@ -92,7 +92,7 @@ def snail(lex):
                 yield lex.token(T.PRIDRUŽI)
         elif znak == '/':
             if lex > '/':
-                lex <= '\n'
+                lex <= {'\n', ''}
                 lex.zanemari()
             elif lex > '*':
                 while True:
