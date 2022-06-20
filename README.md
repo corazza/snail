@@ -1,16 +1,17 @@
 # Snaskell
 
-Naša implementacija [Snaila](https://www.cs.rpi.edu/courses/fall01/modcomp/project2.pdf) koju zovemo Snaskell je inspirirana Haskellom i proširuje Snail dodavanjem sljedećih mogućnosti:
+Naša implementacija [Snaila](https://www.cs.rpi.edu/courses/fall01/modcomp/project2.pdf) koju zovemo Snaskell je inspirirana Haskellom i proširuje Snail dodavanjem sljedećih mogućnosti.
 
-1. korisnički tipova podataka i type checking
-2. polimorfizam (templates/generics)
-3. jednostavni pattern matching
-4. definiranje funkcija (može rekurzivnih) i opcionalna memoizacija
+1. Korisnički tipovi podataka i type checking
+2. Polimorfizam (templates/generics)
+3. Jednostavni pattern matching
+4. Definiranje funkcija (može rekurzivnih) i opcionalna memoizacija
+
+Kako je navedeno u zadatku, konstrukti za petlje (while, for) su izbačeni.
 
 Primjer (`python snail.py ../primjeri/liste.snail` u `src/`):
 
 ```
-=== typechecking ===
 === typechecking ===
 print:  (A) -> unit
 println:  (A) -> unit
