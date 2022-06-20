@@ -5,20 +5,22 @@ Naša implementacija [Snaila](https://www.cs.rpi.edu/courses/fall01/modcomp/proj
 1. korisnički tipova podataka i type checking
 2. polimorfizam (templates/generics)
 3. jednostavni pattern matching
-4. definiranje funkcija (može rekurzivnih)
+4. definiranje funkcija (može rekurzivnih) i opcionalna memoizacija
 
 Primjer (`python snail.py ../primjeri/liste.snail` u `src/`):
 
 ```
 === typechecking ===
-Nil:  List<_>
-Concat:  (A, List<A>) -> List<A>
-None:  Option<_>
-Some:  (A) -> Option<A>
-head:  (List<A>) -> Option<A>
+=== typechecking ===
 print:  (A) -> unit
 println:  (A) -> unit
-input:  () -> int
+input:  () -> string
+to_int:  (string) -> int
+None:  Option<_>
+Some:  (A) -> Option<A>
+Nil:  List<_>
+Concat:  (A, List<A>) -> List<A>
+head:  (List<A>) -> Option<A>
 unesi_element:  (int, List<A>) -> List<A>
 unesi_n_elemenata_rek:  (List<A>, int) -> List<A>
 unesi_n_elemenata:  (int) -> List<int>
@@ -27,12 +29,12 @@ lista:  List<int>
 
 === pokretanje ===
 Unesite broj elemenata: 3
-Unesite element 3: 1
-Unesite element 2: 2
-Unesite element 1: 3
+Unesite element 3: 754
+Unesite element 2: 34
+Unesite element 1: 6
 Unesena lista:
-Concat(3, Concat(2, Concat(1, Nil)))
-Prvi element: 3
+Concat(6, Concat(34, Concat(754, Nil)))
+Prvi element: 6
 ```
 
 Naravno mogućnosti Snaskella su ograničene u usporedbi s pravim sustavima:
@@ -270,9 +272,9 @@ Korisnički tipovi se unose preko pomoćnih funkcija, na primjeru unošenja paro
 ```
 def input_pair() -> Pair<int, int> as
     print("Unesite x: ");
-    let x: int = to_int(input();
+    let x: int = to_int(input());
     print("Unesite y: ");
-    let y: int = to_int(input();
+    let y: int = to_int(input());
     return Pa(x, y);
 enddef
 ```
