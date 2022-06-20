@@ -1,8 +1,24 @@
-// import "../std/liste.snail";
-// import "../std/io.snail";
+def print(x: A) -> unit as
+    __print x;
+    return UNIT;
+enddef
 
-// println(Concat(1, Concat(2, Nil))); // OK
-// println(Concat(1, Concat("asdf", Nil))); // type error!
+def println(x: A) -> unit as
+    __print x;
+    __print __newline;
+    return UNIT;
+enddef
+
+def input() -> int as
+    let x: int = 0;
+    __input x;
+    return x;
+enddef
+
+data Option<A> as
+    None,
+    Some(A)
+enddata
 
 data List<A> as
     Nil,
@@ -16,14 +32,6 @@ def head(xs: List<A>) -> Option<A> as
     endmatch
 enddef
 
-let x: List<int> = Concat(1, Concat(2, Nil));
-let y: List<int> = Concat(1, Concat("asdf", Nil));
-println(x == y);
 
-def test() -> unit as
-    match x as
-        Nil => println("nil"),
-        Concat(a, as) => println("concat")
-    endmatch
-    return UNIT;
-enddef
+println(Concat(1, Concat(2, Nil))); // OK
+println(Concat(1, Concat("asdf", Nil))); // type error!

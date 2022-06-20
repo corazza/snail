@@ -87,8 +87,10 @@ def izračunaj_vartipa_mapiranje(parametar, argument):
                 elif p == a:
                     assert(p ^ T.VARTIPA and a ^ T.VARTIPA)
                 elif a != None:
+                    # raise SemantičkaGreška(
+                    #     f'{složeno_mapiranje} već ima ključ {p} koji se ne mapira na {None}, a vrijednost tipa {a} nije {složeno_mapiranje[p]}')
                     raise SemantičkaGreška(
-                        f'{složeno_mapiranje} već ima ključ {p} koji se ne mapira na {None}, a vrijednost {a} nije {složeno_mapiranje[p]}')
+                        f'{a} nije {složeno_mapiranje[p]}')
                 # else => a == None, i ne radimo ništa
         return složeno_mapiranje
 
