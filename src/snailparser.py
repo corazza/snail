@@ -36,8 +36,13 @@ class P(Parser):
             if read_delim:
                 p >> T.TOČKAZ
             return printanje
-        elif p >= T.INPUT:
-            input = p.input()
+        elif p >= T.INPUTINT:
+            input = p.input_int()
+            if read_delim:
+                p >> T.TOČKAZ
+            return input
+        elif p >= T.INPUTSTRING:
+            input = p.input_string()
             if read_delim:
                 p >> T.TOČKAZ
             return input
@@ -148,9 +153,13 @@ class P(Parser):
         izraz = p.izraz()
         return Definiranje(tipizirano.ime, tipizirano.tip, izraz)
 
-    def input(p) -> 'Input':
+    def input_int(p) -> 'UnosInt':
         ime = p >> T.IME
-        return Unos(ime)
+        return UnosInt(ime)
+
+    def input_string(p) -> 'UnosString':
+        ime = p >> T.IME
+        return UnosString(ime)
 
     def definiranje_tipa(p) -> 'Data':
         ime = p >> T.VELIKOIME

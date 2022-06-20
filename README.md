@@ -224,4 +224,24 @@ je dio typecheck metode AST-a `Funkcija`.
 
 ## Funkcije
 
-Uz podržavanje rekurzije, funkcije također podržavaju 
+Uz podržavanje rekurzivnih definicija, Snaskell podržava i memoizaciju preko ključne riječi `memo`. Sljedeći primjer (iz `primjeri/fibonacci.snail`) naivnu rekurzivnu implementaciju računanja Fibonaccijevih brojeva svodi na O(n):
+
+```
+def memo fib(n: int) -> int as // vrati n-ti fibonaccijev br.
+    if n == 1 then
+        return 0;
+    endif
+
+    if n == 2 then
+        return 1;
+    endif
+
+    return fib(n-1) + fib(n-2);
+enddef
+```
+
+Pozivi `fib(200)` su skoro instantni jer se svode na brze upite u mape i Pythonove operacije s cijelim brojevima. Naravno to nije slučaj ako se izostavi ključna riječ `memo`.
+
+## Unos i ispis
+
+Snaskell p

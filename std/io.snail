@@ -9,8 +9,14 @@ def println(x: A) -> unit as
     return UNIT;
 enddef
 
-def input() -> int as
+def input_int() -> int as
     let x: int = 0;
-    __input x;
+    __input_int x;
+    return x;
+enddef
+
+def input_string() -> string as
+    let x: string = "";
+    __input_string x;
     return x;
 enddef

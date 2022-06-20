@@ -13,7 +13,7 @@ class T(TipoviTokena):
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
     LET, OFTYPE, FTYPE = 'let', ':', '->'
     INT, BOOL, STRINGT, UNITT = 'int', 'bool', 'string', 'unit'
-    PRINT, INPUT, NEWLINE = '__print', '__input', '__newline'
+    PRINT, INPUTINT, INPUTSTRING, NEWLINE = '__print', '__input_int', '__input_string', '__newline'
     RETURN, IMPORT = 'return', 'import'
 
     class BROJ(Token):

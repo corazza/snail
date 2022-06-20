@@ -11,9 +11,9 @@ enddef
 
 def input_pair() -> Pair<int, int> as
     print("Unesite x: ");
-    let x: int = input();
+    let x: int = input_int();
     print("Unesite y: ");
-    let y: int = input();
+    let y: int = input_int();
     return Pa(x, y);
 enddef
 
