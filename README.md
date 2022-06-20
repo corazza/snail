@@ -13,15 +13,17 @@ Primjer (`python snail.py ../primjeri/liste.snail` u `src/`):
 
 ```
 === typechecking ===
+None:  Option<_>
+Some:  (A) -> Option<A>
+is_none:  (Option<A>) -> bool
+is_some:  (Option<A>) -> bool
+Nil:  List<_>
+Concat:  (A, List<A>) -> List<A>
+head:  (List<A>) -> Option<A>
 print:  (A) -> unit
 println:  (A) -> unit
 input:  () -> string
 to_int:  (string) -> int
-None:  Option<_>
-Some:  (A) -> Option<A>
-Nil:  List<_>
-Concat:  (A, List<A>) -> List<A>
-head:  (List<A>) -> Option<A>
 unesi_element:  (int, List<A>) -> List<A>
 unesi_n_elemenata_rek:  (List<A>, int) -> List<A>
 unesi_n_elemenata:  (int) -> List<int>
@@ -30,12 +32,12 @@ lista:  List<int>
 
 === pokretanje ===
 Unesite broj elemenata: 3
-Unesite element 3: 754
-Unesite element 2: 34
-Unesite element 1: 6
+Unesite element 3: 45
+Unesite element 2: 3
+Unesite element 1: 345
 Unesena lista:
-Concat(6, Concat(34, Concat(754, Nil)))
-Prvi element: 6
+Concat(345, Concat(3, Concat(45, Nil)))
+Prvi element: 345
 ```
 
 Naravno mogućnosti Snaskella su ograničene u usporedbi s pravim sustavima.
