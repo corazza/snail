@@ -222,6 +222,13 @@ dok AST-ovi sadrže dio logike koji je vezan uz njihovo značenje:
 npr. to da deklarirani povratni tip funkcije mora biti isti kao tip izraza u return naredbi
 je dio typecheck metode AST-a `Funkcija`.
 
+Na kraju napominjemo da po primjeru Haskella i Rusta,
+svaka funkcija u Snaskellu mora vratiti _nešto_,
+tj. mora vratiti vrijednost dobrog tipa i nema opciju vraćanja ničega
+(poput C-ovskih void funkcija).
+U tu svrhu postoji tip `unit` koji ima samo jednu vrijednost `UNIT` i ne prenosi nikakvu povratnu informaciju.
+Na primjer, funkcija `println` vraća `unit`.
+
 ## Funkcije
 
 Uz podržavanje rekurzivnih definicija, Snaskell podržava i memoizaciju preko ključne riječi `memo`. Sljedeći primjer (iz `primjeri/fibonacci.snail`) naivnu rekurzivnu implementaciju računanja Fibonaccijevih brojeva svodi na O(n):
@@ -248,4 +255,26 @@ Ispis vrijednosti je ostvaren preko funkcija `print()` i `println()`
 koje su definirane u `std/io.snail`.
 Rade identično osim što `println()` na kraju prelazi u novi red.
 
-Same funkcije su ostvarene preko interne naredbe `__print`. Naredba `__print x;` će izvrijedniti izraz `x` i proslijediti ga Pythonovoj `print(x, end='')`
+Same funkcije su ostvarene preko interne naredbe `__print`.
+Naredba `__print x;` će izvrijedniti izraz `x`,
+pretvoriti ga u string koji je razumljiv korisniku,
+i proslijediti ga Pythonovoj `print(..., end='')` funkciji.
+Pretvaranje u korisniku razumljiv prikaz je relevantno za vrijednosti korisničkih tipova:
+ne želimo da se isprinta Pythonov objekt,
+nego lijepo formatirano ime konstruktora s argumentima.
+
+Unos vrijednosti se obavlja preko funkcije `input() -> string`. Funkcija `to_int(x: string) -> int` omogućava dobivanje brojeva od unesenog stringa.
+
+Korisnički tipovi se unose preko pomoćnih funkcija, na primjeru unošenja parova:
+
+```
+def input_pair() -> Pair<int, int> as
+    print("Unesite x: ");
+    let x: int = to_int(input();
+    print("Unesite y: ");
+    let y: int = to_int(input();
+    return Pa(x, y);
+enddef
+```
+
+Interno, postoje naredbe `__input x;` i `__to_int from to;` koje ovu funkcionalnost delegiraju Pythonu.
