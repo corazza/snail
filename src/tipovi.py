@@ -90,7 +90,7 @@ def izračunaj_vartipa_mapiranje(parametar, argument):
                     # raise SemantičkaGreška(
                     #     f'{složeno_mapiranje} već ima ključ {p} koji se ne mapira na {None}, a vrijednost tipa {a} nije {složeno_mapiranje[p]}')
                     raise SemantičkaGreška(
-                        f'{a} nije {složeno_mapiranje[p]}')
+                        f'{a} se ne podudara s {složeno_mapiranje[p]}')
                 # else => a == None, i ne radimo ništa
         return složeno_mapiranje
 
@@ -132,7 +132,6 @@ def equiv_types(a, b, scope, unutar):
     elif b == None:
         return a ^ T.VARTIPA or a ^ elementarni
     elif a ^ elementarni or b ^ elementarni:
-        assert(a not in scope and b not in scope)  # debugiranje
         return a == b or a ^ T.VARTIPA or b ^ T.VARTIPA
     elif a ^ T.VARTIPA and b ^ T.VARTIPA:
         return a.sadržaj == b.sadržaj

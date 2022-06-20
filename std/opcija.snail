@@ -2,3 +2,14 @@ data Option<A> as
     None,
     Some(A)
 enddata
+
+def is_none(x: Option<A>) -> bool as
+    match x as
+        None => return true,
+        Some(y) => return false
+    endmatch
+enddef
+
+def is_some(x: Option<A>) -> bool as
+    return !is_none(x);
+enddef

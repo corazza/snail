@@ -1,13 +1,13 @@
 # Snaskell
 
-Naša implementacija [Snaila](https://www.cs.rpi.edu/courses/fall01/modcomp/project2.pdf) koju zovemo Snaskell je inspirirana Haskellom i proširuje Snail dodavanjem sljedećih mogućnosti.
+Naša implementacija [Snaila](https://www.cs.rpi.edu/courses/fall01/modcomp/project2.pdf) koju zovemo Snaskell je inspirirana Haskellom i proširuje Snail dodavanjem sljedećih mogućnosti:
 
-1. Korisnički tipovi podataka i type checking
-2. Polimorfizam (templates/generics)
-3. Jednostavan pattern matching
-4. Definiranje funkcija (može rekurzivnih) i opcionalna memoizacija
+1. korisnički tipovi podataka i type checking
+2. polimorfizam (templates/generics)
+3. jednostavan pattern matching
+4. definiranje funkcija (može rekurzivnih) i opcionalna memoizacija
 
-Kako je navedeno u zadatku, konstrukti za petlje (while, for) su izbačeni.
+Kako je navedeno u zadatku konstrukti za petlje (while, for) su izbačeni.
 
 Primjer (`python snail.py ../primjeri/liste.snail` u `src/`):
 
@@ -38,20 +38,20 @@ Concat(6, Concat(34, Concat(754, Nil)))
 Prvi element: 6
 ```
 
-Naravno mogućnosti Snaskella su ograničene u usporedbi s pravim sustavima:
+Naravno mogućnosti Snaskella su ograničene u usporedbi s pravim sustavima.
 
 1. (Skoro) sve oznake tipova se moraju eksplicitno pisati, dok se u Hindley–Milner sistemu (kojeg Haskell proširuje) ne mora nijedna.
 2. Varijable tipova, koje ostvaruju polimorfizam, ne mogu se restringirati (type klase u Haskellu dodaju tu mogućnost).
 3. Kod pattern matchinga, obrasci ne mogu biti proizovoljne vrijednosti (dobrog tipa), već samo konstruktori koji eksplicitno navode slobodne varijable.
 
-U direktorijima `std/` i `primjeri/` se mogu vidjeti demonstracije navedenih mogućnosti, koje ćemo sada detaljnije objasniti.
+U direktorijima `std/` i `primjeri/` mogu se vidjeti demonstracije navedenih mogućnosti, koje ćemo u daljnjem detaljnije objasniti.
 
 ## Korisnički tipovi
 
 Korisnički tipovi se definiraju koristeći `data ... as ... enddata` sintaksu,
-što ćemo pokazati kroz primjer tipa `Option`.
-Između `as` i `enddata` nalazi se popis konstruktora za tip.
-Konstruktor sadrži popis 0 ili više tipova, koji čine polja konstruktora.
+što pokazujemo kroz primjer tipa `Option`.
+Između `as` i `enddata` nalazi se popis konstruktora.
+Konstruktor se sastoji od imena i popisa 0 ili više tipova koji čine polja konstruktora.
 
 ```
 data Option<A> as   // Option je ime tipa, A je varijabla tipa (npr. A == int)
@@ -197,7 +197,7 @@ Ovaj kod ispisuje `Concat(1, Concat(2, Nil))`.
 No kada bi dekomentirali drugu liniju ne bi prošao type checking:
 
 ```
-vepar.SemantičkaGreška: STRINGT'string' nije INT'int'
+vepar.SemantičkaGreška: STRINGT'string' se ne podudara s INT'int'
 ```
 
 Poruka nije najjasnija ali odnosi se na napoklapanje u parametrima konstruktora `Concat`:

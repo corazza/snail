@@ -135,7 +135,7 @@ class Definiranje(AST):
         tip = self.izraz.typecheck(scope, unutar, meta)
         if not tipovi.equiv_types(tip, self.tip, scope, unutar):
             raise SemantičkaGreška(
-                f'{self.ime}:{self.tip} se ne podudara s {tip}')
+                f'{self.ime}: {self.tip} se ne podudara s {tip}')
         scope[self.ime] = tip
 
     def izvrši(self, mem, unutar):
