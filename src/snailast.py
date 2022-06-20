@@ -185,6 +185,15 @@ class Data(AST):
         """<Data> definicije se ne izvršavaju"""
 
 
+class BoolovskaVrijednost(AST):
+    sadržaj: 'True|False'
+
+    def typecheck(self, scope, unutar, meta):
+        return Token(T.BOOLT)
+    
+    def vrijednost(self, mem, unutar):
+        return self.sadržaj
+
 class SloženaVrijednost(AST):
     # Ovo je AST samo da bi se naslijedio lijepi print
     konstruktor: 'Konstruktor'
@@ -378,8 +387,8 @@ class Grananje(AST):
 
     def typecheck(self, scope, unutar, meta):
         tip = self.provjera.typecheck(scope, unutar, meta)
-        if not tipovi.equiv_types(tip, Token(T.BOOL), scope, unutar):
-            raise SemantičkaGreška(f'provjera mora biti tipa {T.BOOL}')
+        if not tipovi.equiv_types(tip, Token(T.BOOLT), scope, unutar):
+            raise SemantičkaGreška(f'provjera mora biti tipa {T.BOOLT}')
         self.ako.typecheck(scope, unutar, meta)
         if self.inače != nenavedeno:
             self.inače.typecheck(scope, unutar, meta)
@@ -397,10 +406,10 @@ class Negacija(AST):
 
     def typecheck(self, scope, unutar, meta):
         tip = self.ispod.typecheck(scope, unutar, meta)
-        if not tipovi.equiv_types(tip, Token(T.BOOL), scope, unutar):
-            raise SemantičkaGreška(f'varijabla mora biti tipa {T.BOOL}')
+        if not tipovi.equiv_types(tip, Token(T.BOOLT), scope, unutar):
+            raise SemantičkaGreška(f'varijabla mora biti tipa {T.BOOLT}')
 
-    def vrijednost(negacija): 
+    def vrijednost(negacija, mem, unutar): 
         return not negacija.ispod.vrijednost()
 
     def optim(negacija):
@@ -419,7 +428,7 @@ class Infix(AST):
     def typecheck(self, scope, unutar, meta):
         op = self.operator
         if self.lijevi == nenavedeno:
-            lijevi_tip = Token(T.INT)
+            lijevi_tip = Token(T.INT) if op ^ T.MINUS else Token(T.BOOLT)
         else:
             lijevi_tip = self.lijevi.typecheck(scope, unutar, meta)
         desni_tip = self.desni.typecheck(scope, unutar, meta)
@@ -433,21 +442,25 @@ class Infix(AST):
                 raise SemantičkaGreška(
                     f'oba operanda moraju biti istog tipa {lijevi_tip}')
         elif op ^ {T.LOGI, T.LOGILI}:
-            if not (tipovi.equiv_types(lijevi_tip, Token(T.BOOL), scope, unutar) and tipovi.equiv_types(desni_tip, Token(T.BOOL), scope, unutar)):
+            if not (tipovi.equiv_types(lijevi_tip, Token(T.BOOLT), scope, unutar) and tipovi.equiv_types(desni_tip, Token(T.BOOLT), scope, unutar)):
                 raise SemantičkaGreška(
-                    f'oba operanda moraju biti tipa {T.BOOL}')
+                    f'oba operanda moraju biti tipa {T.BOOLT}')
+        elif op ^ T.NEGACIJA:
+            if not tipovi.equiv_types(desni_tip, Token(T.BOOLT), scope, unutar):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.BOOLT}')
         else:
             raise SemantičkaGreška(f'nepoznat operator {op}')
 
         if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV}:
             return Token(T.INT)
         else:
-            return Token(T.BOOL)
+            return Token(T.BOOLT)
 
     def vrijednost(self, mem, unutar):
         op = self.operator
         if self.lijevi == nenavedeno:
-            lijevi = 0
+            lijevi = 0 if op ^ T.MINUS else None # T.NEGACIJA ne koristi lijevi operand
         else:
             lijevi = self.lijevi.vrijednost(mem, unutar)
         desni = self.desni.vrijednost(mem, unutar)
@@ -474,9 +487,9 @@ class Infix(AST):
             return 1 if lijevi == desni else 0
         elif op ^ T.NEJEDNAKO:
             return 1 if lijevi != desni else 0
-        elif op ^ T.ILI:
+        elif op ^ T.LOGILI:
             return lijevi or desni
-        elif op ^ T.I:
+        elif op ^ T.LOGI:
             return lijevi and desni
         elif op ^ T.NEGACIJA:
             return not desni

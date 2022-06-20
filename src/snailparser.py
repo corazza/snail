@@ -204,7 +204,7 @@ class P(Parser):
         return tipovi
 
     def tip(p) -> 'tip|VARTIPA#|SloženiTip':
-        if elementarni := p >= {T.INT, T.BOOL, T.STRINGT, T.UNITT}:
+        if elementarni := p >= {T.INT, T.BOOLT, T.STRINGT, T.UNITT}:
             return elementarni
         elif vartipa := p >= T.VARTIPA:
             return vartipa
@@ -288,6 +288,10 @@ class P(Parser):
             return Infix(minus, nenavedeno, p.faktor())
         elif negacija := p >= T.NEGACIJA:
             return Infix(negacija, nenavedeno, p.faktor())
+        elif p >= T.TRUE:
+            return BoolovskaVrijednost(True)
+        elif p >= T.FALSE:
+            return BoolovskaVrijednost(False)
         elif broj := p >= T.BROJ:
             return broj
         elif string := p >= T.STRING:

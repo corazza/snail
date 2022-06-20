@@ -7,7 +7,7 @@ import scopes
 import snailast
 
 
-elementarni = {T.INT, T.BOOL, T.STRINGT, T.UNITT}
+elementarni = {T.INT, T.BOOLT, T.STRINGT, T.UNITT}
 
 
 class TipFunkcije(AST):

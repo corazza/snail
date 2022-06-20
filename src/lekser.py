@@ -14,9 +14,10 @@ class T(TipoviTokena):
     LOGI, LOGILI = '&', '|'
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
     LET, OFTYPE, FTYPE = 'let', ':', '->'
-    INT, BOOL, STRINGT, UNITT = 'int', 'bool', 'string', 'unit'
+    INT, BOOLT, STRINGT, UNITT = 'int', 'bool', 'string', 'unit'
     PRINT, INPUT, NEWLINE, TOINT = '__print', '__input', '__newline', '__to_int'
     RETURN, IMPORT = 'return', 'import'
+    TRUE, FALSE = 'true', 'false'
 
     class BROJ(Token):
         def typecheck(self, scope, unutar, meta):
