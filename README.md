@@ -4,7 +4,7 @@ Naša implementacija [Snaila](https://www.cs.rpi.edu/courses/fall01/modcomp/proj
 
 1. Korisnički tipovi podataka i type checking
 2. Polimorfizam (templates/generics)
-3. Jednostavni pattern matching
+3. Jednostavan pattern matching
 4. Definiranje funkcija (može rekurzivnih) i opcionalna memoizacija
 
 Kako je navedeno u zadatku, konstrukti za petlje (while, for) su izbačeni.
