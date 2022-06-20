@@ -42,8 +42,8 @@ def preprocess(filename):
     return "\n".join(lines)
 
 
-def main():
-    filename = os.path.realpath(sys.argv[1])
+def main(*sysargs):
+    filename = os.path.realpath(sysargs[0])
     # print('=== preprocessing ===')
     src = preprocess(filename)
     # src = justread(filename)
@@ -61,4 +61,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1])

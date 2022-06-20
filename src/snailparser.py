@@ -43,6 +43,8 @@ class P(Parser):
             return input
         elif p >= T.IF:
             return p.grananje()
+        elif p >= T.TERNARNI:
+            return p.ternarni()
         elif p >= T.DEF:
             return p.funkcija()
         elif p >= T.LET:
@@ -123,6 +125,15 @@ class P(Parser):
             return Grananje(provjera, ako, inače)
         else:
             exit("Sintaktička greška")
+
+    def ternarni(p) -> 'Ternarni':
+        p >> T.OTV
+        provjera = p.izraz()
+        P >> T.OFTYPE
+        ako = p.naredbe(T.OFTYPE)
+        p >> T.OFTYPE
+        inače = p.naredbe(T.ZATV, pojedi=True)
+        return Grananje(provjera, ako, inače)
 
     def printanje(p) -> 'Printanje':
         if newline := p >= T.NEWLINE:

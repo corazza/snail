@@ -31,9 +31,11 @@ printanje -> PRINT izraz TOČKAZ
            | PRINT NEWLINE TOČKAZ
 grananje  -> IF izraz THEN naredbe ENDIF
            | IF izraz THEN naredbe ELSE naredbe ENDIF
+ternarni  -> TERNARNI OTV izraz OFTYPE naredbe OFTYPE ZATV
+           | TERNARNI OTV izraz OFTYPE naredbe OFTYPE (naredbe)? ZATV
 vraćanje  -> VRATI TOČKAZ
            | VRATI izraz TOČKAZ
-funkcija -> DEF ime OTV parametri ZATV FTYPE tip AS naredbe ENDDEF
+funkcija -> DEF (MEMO)? ime OTV parametri ZATV FTYPE tip AS naredbe ENDDEF
 parametri -> ime | parametri ZAREZ ime
 izraz -> član
        | izraz PLUS član

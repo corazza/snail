@@ -1,6 +1,6 @@
 import "../std/io.snail";
 
-def fib(n: int) -> int as // vrati n-ti fibonaccijev br.
+def memo fib(n: int) -> int as // vrati n-ti fibonaccijev br.
     if n == 1 then
         return 0;
     endif

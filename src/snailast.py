@@ -216,6 +216,9 @@ class Funkcija(AST):
     tip: 'tip'
     parametri: 'Tipizirano*'
     tijelo: 'naredba*'
+    # TODO
+    memo_flag: ''
+    memoizirano = {}
 
     def typecheck(funkcija, scope, unutar, meta):
         lokalni = scopes.Scope(scope)
@@ -226,15 +229,28 @@ class Funkcija(AST):
         tip = tipovi.TipFunkcije(funkcija.tip, parametri)
         scope[funkcija.ime] = tip
         return tip
-
+    
     def pozovi(funkcija, mem, unutar, argumenti):
-        lokalni = Memorija(zip([p.ime for p in funkcija.parametri], argumenti))
-        try:
-            funkcija.tijelo.izvrši(mem=lokalni, unutar=funkcija)
-        except Povratak as exc:
-            return exc.preneseno
+        if(funkcija.memo_flag):
+            try:
+                return funkcija.memoizirano[str(argumenti)]
+            except KeyError:
+                lokalni = Memorija(zip([p.ime for p in funkcija.parametri], argumenti))
+                try:
+                    funkcija.tijelo.izvrši(mem=lokalni, unutar=funkcija)
+                except Povratak as exc:
+                    funkcija.memoizirano[str(argumenti)] = exc.preneseno
+                    return exc.preneseno
+                else:
+                    raise GreškaIzvođenja(f'{funkcija.ime} nije ništa vratila')
         else:
-            raise GreškaIzvođenja(f'{funkcija.ime} nije ništa vratila')
+            lokalni = Memorija(zip([p.ime for p in funkcija.parametri], argumenti))
+            try:
+                funkcija.tijelo.izvrši(mem=lokalni, unutar=funkcija)
+            except Povratak as exc:
+                return exc.preneseno
+            else:
+                raise GreškaIzvođenja(f'{funkcija.ime} nije ništa vratila')
 
     def izvrši(self, mem, unutar):
         """<Funkcija> definicije se ne izvršavaju"""
