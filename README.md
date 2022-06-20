@@ -77,8 +77,8 @@ data List<A> as
 enddata
 ```
 
-`Nil` predstavlja bazni slučaj,
-a `Concat(A, List<A>)` predstavlja vrijednost tipa `A` koja je dodana na početak liste tipa `List<A>`.
+`Nil` predstavlja bazni slučaj (praznu listu),
+a `Concat(A, List<A>)` predstavlja nepraznu listu dobivenu dodavanjem vrijednosti tipa `A` na početak liste tipa `List<A>`.
 
 
 ## Pattern matching
@@ -87,8 +87,8 @@ Korisnički tipovi podataka u Snaskellu imaju oblik "sume produkta" tipova,
 u smislu da su konstruktori članovi sume, a polja konstruktora faktori produkta.
 U ovom kontekstu, suma se može shvatiti kao *ili* (`List<A>` je ili `Nil` ili `Concat`),
 a produkt se može shvatiti kao *i* (`Concat(A, List<A>)` sadrži i `A` i `List<A>`).
-Takva algebarska interpretacija tipova od klasične `case` sintakse iz C-ovskih jezika
-daje znatno korisniju konstrukciju koja pomaže u kontroli toka,
+Takva algebarska interpretacija tipova umjesto klasične `case` sintakse iz C-ovskih jezika omogućava ekspresivniju konstrukciju pattern matchinga,
+koja pomaže u kontroli toka,
 pristupanju poljima, i pokrivanju relevantnih slučajeva na vizualno intuitivan način.
 
 To ćemo demonstrirati na primjeru funkcije `head(xs: List<A>) -> Option<A>` koja vraća prvi element liste (ako postoji):
