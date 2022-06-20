@@ -244,4 +244,8 @@ Pozivi `fib(200)` su skoro instantni jer se svode na brze upite u mape i Pythono
 
 ## Unos i ispis
 
-Snaskell p
+Ispis vrijednosti je ostvaren preko funkcija `print()` i `println()`
+koje su definirane u `std/io.snail`.
+Rade identično osim što `println()` na kraju prelazi u novi red.
+
+Same funkcije su ostvarene preko interne naredbe `__print`. Naredba `__print x;` će izvrijedniti izraz `x` i proslijediti ga Pythonovoj `print(x, end='')`

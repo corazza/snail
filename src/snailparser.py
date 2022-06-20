@@ -140,12 +140,12 @@ class P(Parser):
         inače = p.naredbe(T.ZATV, pojedi=True)
         return Grananje(provjera, ako, inače)
 
-    def printanje(p) -> 'Printanje':
+    def printanje(p) -> 'Ispis':
         if newline := p >= T.NEWLINE:
-            return Printanje(newline)
+            return Ispis(newline)
         else:
             izraz = p.izraz()
-            return Printanje(izraz)
+            return Ispis(izraz)
 
     def definiranje(p) -> 'Definiranje':
         tipizirano = p.tipizirano()

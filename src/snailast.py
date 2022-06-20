@@ -334,7 +334,7 @@ class Vraćanje(AST):
             raise Povratak(vrijednost)
 
 
-class Printanje(AST):
+class Ispis(AST):
     sadržaj: 'izraz|STRING#|NEWLINE'
 
     def typecheck(self, scope, unutar, meta):
