@@ -1,0 +1,13 @@
+import "../std/io.snail";
+
+let a: bool = 0;
+let b: bool = 1;
+let c: bool = 1;
+let d: bool = 0;
+let e: bool = 1;
+a = d | e;
+b = !e;
+c = d & e;
+print(a);
+print(b);
+print(c);
