@@ -29,5 +29,5 @@ enddef
 
 let n: int = -1;
 print("unesite n: ");
-n = input_int();
+n = to_int(input());
 prvih_n_fib(n);

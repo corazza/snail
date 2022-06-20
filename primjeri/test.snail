@@ -4,5 +4,5 @@ import "../std/liste.snail";
 println(Concat(1, Concat(2, Nil))); // OK
 // println(Concat(1, Concat("asdf", Nil))); // type error!
 
-let ime: string = input_string();
+let ime: string = input();
 print(ime);

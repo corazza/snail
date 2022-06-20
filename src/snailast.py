@@ -347,27 +347,29 @@ class Printanje(AST):
             print(token_str(self.sadržaj.vrijednost(mem, unutar)), end='')
 
 
-class UnosInt(AST):
-    ime: 'IME'
-
-    def typecheck(self, scope, unutar, meta):
-        if not tipovi.equiv_types(scope[self.ime], Token(T.INT), scope, unutar):
-            raise SemantičkaGreška(f'unos mora biti u varijablu tipa {T.INT}')
-        scope[self.ime] = Token(T.INT)
-
-    def izvrši(self, mem, unutar):
-        mem[self.ime] = int(input())
-
-class UnosString(AST):
+class Unos(AST):
     ime: 'IME'
 
     def typecheck(self, scope, unutar, meta):
         if not tipovi.equiv_types(scope[self.ime], Token(T.STRINGT), scope, unutar):
             raise SemantičkaGreška(f'unos mora biti u varijablu tipa {T.STRINGT}')
-        scope[self.ime] = Token(T.STRINGT)
 
     def izvrši(self, mem, unutar):
         mem[self.ime] = input()
+
+class ToInt(AST):
+    iz: 'IME'
+    u: 'IME'
+
+    def typecheck(self, scope, unutar, meta):
+        if not tipovi.equiv_types(scope[self.iz], Token(T.STRINGT), scope, unutar):
+            raise SemantičkaGreška(f'izvor mora biti tipa {T.STRINGT}')
+        if not tipovi.equiv_types(scope[self.u], Token(T.INT), scope, unutar):
+            raise SemantičkaGreška(f'odredište mora biti tipa {T.INT}')
+
+    def izvrši(self, mem, unutar):
+        mem[self.u] = int(mem[self.iz])
+
 
 class Grananje(AST):
     provjera: 'izraz'
