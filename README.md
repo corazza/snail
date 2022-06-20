@@ -51,9 +51,9 @@ Između `as` i `enddata` nalazi se popis konstruktora za tip.
 Konstruktor sadrži popis 0 ili više tipova, koji čine polja konstruktora.
 
 ```
-data Option<A> as
-    None,
-    Some(A)
+data Option<A> as   // Option je ime tipa
+    None,           // konstruktor bez argumenata
+    Some(A)         // konstruktor s jednim argumentom tipa `A`
 enddata
 ```
 
