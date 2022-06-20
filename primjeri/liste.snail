@@ -5,7 +5,7 @@ def unesi_element(n: int, xs: List<A>) -> List<A> as
     print("Unesite element ");
     print(n);
     print(": ");
-    let x: int = input();
+    let x: int = to_int(input();
     return Concat(x, xs);
 enddef
 
@@ -24,7 +24,7 @@ def unesi_n_elemenata(n: int) -> List<int> as
 enddef
 
 print("Unesite broj elemenata: ");
-let n: int = input();
+let n: int = to_int(input();
 
 let lista: List<int> = unesi_n_elemenata(n);
 

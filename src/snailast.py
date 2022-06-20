@@ -246,9 +246,9 @@ class Funkcija(AST):
     
     def pozovi(funkcija, mem, unutar, argumenti):
         if(funkcija.memo_flag):
-            try:
+            if str(argumenti) in funkcija.memoizirano:
                 return funkcija.memoizirano[str(argumenti)]
-            except KeyError:
+            else:
                 lokalni = Memorija(zip([p.ime for p in funkcija.parametri], argumenti))
                 try:
                     funkcija.tijelo.izvrši(mem=lokalni, unutar=funkcija)
@@ -334,7 +334,7 @@ class Vraćanje(AST):
             raise Povratak(vrijednost)
 
 
-class Printanje(AST):
+class Ispis(AST):
     sadržaj: 'izraz|STRING#|NEWLINE'
 
     def typecheck(self, scope, unutar, meta):
@@ -351,12 +351,24 @@ class Unos(AST):
     ime: 'IME'
 
     def typecheck(self, scope, unutar, meta):
-        if not tipovi.equiv_types(scope[self.ime], Token(T.INT), scope, unutar):
-            raise SemantičkaGreška(f'unos mora biti u varijablu tipa {T.INT}')
-        scope[self.ime] = Token(T.INT)
+        if not tipovi.equiv_types(scope[self.ime], Token(T.STRINGT), scope, unutar):
+            raise SemantičkaGreška(f'unos mora biti u varijablu tipa {T.STRINGT}')
 
     def izvrši(self, mem, unutar):
-        mem[self.ime] = int(input())
+        mem[self.ime] = input()
+
+class ToInt(AST):
+    iz: 'IME'
+    u: 'IME'
+
+    def typecheck(self, scope, unutar, meta):
+        if not tipovi.equiv_types(scope[self.iz], Token(T.STRINGT), scope, unutar):
+            raise SemantičkaGreška(f'izvor mora biti tipa {T.STRINGT}')
+        if not tipovi.equiv_types(scope[self.u], Token(T.INT), scope, unutar):
+            raise SemantičkaGreška(f'odredište mora biti tipa {T.INT}')
+
+    def izvrši(self, mem, unutar):
+        mem[self.u] = int(mem[self.iz])
 
 
 class Grananje(AST):

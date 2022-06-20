@@ -80,6 +80,19 @@ enddata
 `Nil` predstavlja bazni slučaj (praznu listu),
 a `Concat(A, List<A>)` predstavlja nepraznu listu dobivenu dodavanjem vrijednosti tipa `A` na početak liste tipa `List<A>`.
 
+Kroz dodatni primjer korisničkog tipa `Pair` (iz datoteke `std/parovi.snail`) ističemo da se u definicijama može pojavljivati više parametara tipa:
+
+```
+data Pair<C, D> as
+    Pa(C, D)
+enddata
+```
+
+Ovaj tip ima samo jedan konstruktor koji se zove `Pa`
+(trebao bi se zvati `Pair` ali ne može radi tehničke limitacije koja nije bila prioritetna).
+`Pa` prima dva izraza te ih stavlja u "produkt",
+tako da ta složena vrijednosti i prvog i drugog izraza.
+Ti izrazi mogu ali ne moraju biti različitih tipova.
 
 ## Pattern matching
 
@@ -103,22 +116,20 @@ enddef
 ```
 
 Ulazna lista `xs` može biti ili prazna (bazni `Nil` slučaj) ili konkatenacija nekog `A` s listom `A`-ova.
-`match` naredba prima neku složenu vrijednost (tj. instancu tipa koji ima konstruktore, u ovom slučaju `xs`).
+Match naredba prima neku složenu vrijednost (tj. instancu tipa koji ima konstruktore, u ovom slučaju `xs`).
 Tijelo match naredbe sadrži nizove oblika *pattern => naredba*.
 Pattern mora biti jedan od konstruktora tipa kojeg ima složena vrijednost `match` naredbe,
-preciznije pattern je "oblik" konstruktora koji umjesto argumenata
-(tj. konkretnih vrijednosti koje bi instancirale tip na kojeg se konstruktor odnosi)
-sadrži slobodne varijable.
-U gornjem primjeru, pattern `Concat(x, tail)` uvodi slobodne varijable `x` i `tail`.
+preciznije pattern je "oblik" konstruktora koji umjesto argumenata koje treba izvrijedniti uvodi nove varijable.
+U gornjem primjeru pattern `Concat(x, tail)` uvodi varijable `x` i `tail`.
 Kažemo da se vrijednost dana matchu (`xs`) poklapa s nekim patternom ako je sastavljana od istog konstruktora na koji se odnosi pattern.
 Npr. ako je dani `xs == Concat(1, Nil)`, on se poklapa s patternom `Concat(x, tail)` i ne s `Nil`.
-Ako se dana vrijednost poklapa s patternom,
-zvršit će se uz taj pattern vezana naredba tako da se  varijable iz patterna uvedu u scope i vežu za dijelove dane vrijednosti
+Ako se dana vrijednost poklapa s patternom
+izvršit će se uz taj pattern vezana naredba tako da se  varijable iz patterna uvedu u scope i vežu za dijelove dane vrijednosti
 (`x` će u naredbi imati vrijednost `1`, a `tail` vrijednost `Nil`).
 
-Type checking će se pobrinuti da su pokriveni svi mogući slučajevi, i da su to samo oni koji odgovaraju tipu dane vrijednosti.
-Korist takve restrikcije je da se svi *mogući* događaji moraju pokriti.
-To je najbolje vidljivo na sljedećem primjeru koji pak analizira povratnu vrijednost `head` funkcije (taj `primjeri/liste.snail`):
+Type checking će se pobrinuti da su pokriveni svi slučajevi (konstruktori)
+i da su to samo oni koji odgovaraju tipu dane vrijednosti.
+Korist takve restrikcije je najbolje vidljiva na sljedećem primjeru koji analizira povratnu vrijednost `head` funkcije (`primjeri/liste.snail`):
 
 ```
 print("Prvi element: ");
@@ -129,25 +140,112 @@ match head(lista) as
 endmatch
 ```
 
-Kad bi funkcionalnost `head`a implementirali u klasičnim programskim jezicima poput C-a ili Pythona,
-ne bi mogli biti sigurni da pozivatelji provjeravaju slučaj u kojemu `head` vrati null pointer ili `None`,
+Kad bi funkcionalnost `head`a implementirali u klasičnim programskim jezicima poput C-a ili Pythona
+(najčešće) ne bi mogli biti sigurni da pozivatelji provjeravaju slučaj u kojemu `head` vrati null pointer ili `None`,
 ali Snaskell program u kojemu se to ne provjerava neće proći type checking.
 
-Nažalost ovo je daleko od pune moći koju se inače očekuje od matcha,
+Nažalost ovo je daleko od pune moći koju se inače očekuje od pattern matchinga,
 a to je da se umjesto ovako usko definiranih patterna mogu koristiti proizvoljni izrazi,
 tj. da se dopusti da istovremeno postoje patterni
 `Concat(x, tail)`, `Concat(f(a), Nil)`, `Concat(x, Concat(y, Nil))` i slično.
 
+Slično funkciji `head`, za pristup elementima para koriste se funkcije `first` i `second`:
+
+```
+def first(p: Pair<A, B>) -> A as
+    match p as
+        Pa(a, b) => return a
+    endmatch
+enddef
+
+def second(p: Pair<A, B>) -> B as
+    match p as
+        Pa(a, b) => return b
+    endmatch
+enddef
+```
+
+Kao uvod u sljedeću sekciju o type checkingu,
+napominjemo da kad bi se u definiciji `first` linija `Pa(a, b) => return a` izmijenila u
+`Pa(a, b) => return b`, Snaskell bi javio grešku **prije** izvođenja:
+
+```
+vepar.SemantičkaGreška: funkcija first treba vratiti A (dano: B)
+```
+
 ## Type checking
 
-Type checking se odvija statički, prije izvršavanja programa, te osigurava sljedeće.
+Type checking se odvija prije izvršavanja programa i osigurava sljedeće.
 
-1. Dani argumenti se poklapaju s parametrima funkcija u tipu.
+1. Dani argumenti se u tipu poklapaju s parametrima funkcija i konstruktora.
 2. Funkcije vraćaju vrijednost dobrog tipa (kakav je definiran).
 3. Obrasci u match izrazima pokrivaju sve konstruktore, i samo konstruktore tog tipa.
+4. Lijeva i desna strana pridruživanja se poklapaju u tipu.
+5. Etc. (`if` testira izraz koji je tipa `bool`, ...)
 
-Točke (1) i (2) se odnose i na konstruktore, koje možemo shvatiti kao funkcije.
+Na primjeru:
 
+```
 println(Concat(1, Concat(2, Nil))); // OK
 // println(Concat(1, Concat("asdf", Nil))); // type error!
+```
 
+Ovaj kod ispisuje `Concat(1, Concat(2, Nil))`.
+No kada bi dekomentirali drugu liniju ne bi prošao type checking:
+
+```
+vepar.SemantičkaGreška: STRINGT'string' nije INT'int'
+```
+
+Poruka nije najjasnija ali odnosi se na napoklapanje u parametrima konstruktora `Concat`:
+pokušavamo `1` (`int`) staviti na početak liste `Concat("asdf", Nil)` koja je tipa `List<string>`.
+
+Type checking u Snaskellu je znatno olakšan činjenicom da svaka
+funkcija i konstruktor u definiciji moraju navesti tipove svih parametara (ili navesti varijablu tipa).
+Isto vrijedi i za definiranje varijabli (`let` naredba), gdje se mora navesti tip varijable.
+Zato ne trebamo koristiti složenije metode određivanja tipova (type inference) nego uglavnom možemo konzultirati definicije i provjeriti poklapanje.
+
+Jedina kompliciranija stvar u implementaciji type checkinga bile je provjeravanje da se
+parametri tipa (`A`, `B`, etc.) konzistentno koriste.
+Naime, definicija liste nigdje ne navodi što je tipa elemenata konkretno,
+no type checking i dalje mora moći detektirati da on nije konzistentno korišten u izrazima
+poput `Concat(1, Concat("asdf", Nil))`.
+To je ostvarno tako da se na mjestima poziva (kako funkcija tako i konstruktora),
+parametri tipa zamijene s korištenim tipovima (ili pak drugim parametrima tipa!)
+te da se te zamjene pamte u mapiranju (iz varijabli tipa u uniju varijabli tipa i konkretnih tipova).
+To mapiranje pazi na konzistentnost i javlja type error kad je prekršena.
+Dio ove funkcionalnosti implementiran je u datoteci `src/tipovi.py`,
+a dio u samim AST-ovima u `typecheck()` metodama.
+`tipovi.py` sadrži općenite operacije poput instanciranja konkretnih tipova iz poziva,
+izgradnje spomenute mape, rekurzivne provjere ekvivalentnosti složenih tipova, itd.,
+dok AST-ovi sadrže dio logike koji je vezan uz njihovo značenje:
+npr. to da deklarirani povratni tip funkcije mora biti isti kao tip izraza u return naredbi
+je dio typecheck metode AST-a `Funkcija`.
+
+## Funkcije
+
+Uz podržavanje rekurzivnih definicija, Snaskell podržava i memoizaciju preko ključne riječi `memo`. Sljedeći primjer (iz `primjeri/fibonacci.snail`) naivnu rekurzivnu implementaciju računanja Fibonaccijevih brojeva svodi na O(n):
+
+```
+def memo fib(n: int) -> int as // vrati n-ti fibonaccijev br.
+    if n == 1 then
+        return 0;
+    endif
+
+    if n == 2 then
+        return 1;
+    endif
+
+    return fib(n-1) + fib(n-2);
+enddef
+```
+
+Pozivi `fib(200)` su skoro instantni jer se svode na brze upite u mape i Pythonove operacije s cijelim brojevima. Naravno to nije slučaj ako se izostavi ključna riječ `memo`.
+
+## Unos i ispis
+
+Ispis vrijednosti je ostvaren preko funkcija `print()` i `println()`
+koje su definirane u `std/io.snail`.
+Rade identično osim što `println()` na kraju prelazi u novi red.
+
+Same funkcije su ostvarene preko interne naredbe `__print`. Naredba `__print x;` će izvrijedniti izraz `x` i proslijediti ga Pythonovoj `print(x, end='')`
