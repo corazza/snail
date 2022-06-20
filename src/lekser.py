@@ -4,8 +4,8 @@ from util import *
 
 
 class T(TipoviTokena):
-    IF, THEN, ELSE, ENDIF, DEF, AS, ENDDEF =\
-        'if', 'then', 'else', 'endif', 'def', 'as', 'enddef'
+    IF, THEN, ELSE, ENDIF, DEF, MEMO, AS, ENDDEF =\
+        'if', 'then', 'else', 'endif', 'def', 'memo', 'as', 'enddef'
     DATA, ENDDATA, MATCH, ENDMATCH = 'data', 'enddata', 'match', 'endmatch'
     PLUS, MINUS, PUTA, DIV = '+-*/'
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO, SLIJEDI = '<', '>', '<=', '>=', '==', '!=', '=>'

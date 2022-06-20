@@ -214,7 +214,12 @@ class P(Parser):
         staro_imef = p.imef
         stari_parametrif = p.parametrif
         stari_tipf = p.tipf
+        memo_flag = 0
         # TODO istražiti: memorija u parseru je loša ideja, može li se ovo preseliti drugdje?
+        
+        if p >= T.MEMO:
+            memo_flag = 1
+        
         ime = p >> T.IME
         p.imef = ime
 
@@ -225,7 +230,7 @@ class P(Parser):
         p.tipf = tip
         p >> T.AS
         tijelo = p.naredbe(T.ENDDEF, pojedi=True)
-        fja = Funkcija(ime, tip, parametri, tijelo)
+        fja = Funkcija(ime, tip, parametri, tijelo, memo_flag)
         p.funkcije[ime] = fja
 
         p.imef = staro_imef
