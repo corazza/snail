@@ -246,9 +246,9 @@ class Funkcija(AST):
     
     def pozovi(funkcija, mem, unutar, argumenti):
         if(funkcija.memo_flag):
-            try:
+            if str(argumenti) in funkcija.memoizirano:
                 return funkcija.memoizirano[str(argumenti)]
-            except KeyError:
+            else:
                 lokalni = Memorija(zip([p.ime for p in funkcija.parametri], argumenti))
                 try:
                     funkcija.tijelo.izvrši(mem=lokalni, unutar=funkcija)

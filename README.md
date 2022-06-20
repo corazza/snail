@@ -224,3 +224,4 @@ je dio typecheck metode AST-a `Funkcija`.
 
 ## Funkcije
 
+Uz podržavanje rekurzije, funkcije također podržavaju 
