@@ -10,6 +10,8 @@ class T(TipoviTokena):
     PLUS, MINUS, PUTA, DIV = '+-*/'
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO, SLIJEDI = '<', '>', '<=', '>=', '==', '!=', '=>'
     TERNARNI = '?'
+    NEGACIJA, KONJEKSP = '!$'
+    LOGI, LOGILI = '&', '|'
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
     LET, OFTYPE, FTYPE = 'let', ':', '->'
     INT, BOOL, STRINGT, UNITT = 'int', 'bool', 'string', 'unit'

@@ -380,6 +380,25 @@ class Grananje(AST):
             return self.inače.izvrši(mem, unutar)
 
 
+class Negacija(AST):
+    ispod: 'izraz'
+
+    def typecheck(self, scope, unutar, meta):
+        tip = self.ispod.typecheck(scope, unutar, meta)
+        if not tipovi.equiv_types(tip, Token(T.BOOL), scope, unutar):
+            raise SemantičkaGreška(f'varijabla mora biti tipa {T.BOOL}')
+
+    def vrijednost(negacija): 
+        return not negacija.ispod.vrijednost()
+
+    def optim(negacija):
+        ispod_opt = negacija.ispod.optim()
+        if ispod_opt ^ Negacija: 
+            return ispod_opt.ispod 
+        else: 
+            return Negacija(ispod_opt)
+
+
 class Infix(AST):
     operator: 'PLUS|MINUS|...'
     lijevi: 'faktor|član|Infix'  # TODO provjeri ima li ova deklaracija smisla
@@ -401,6 +420,10 @@ class Infix(AST):
             if not tipovi.equiv_types(lijevi_tip, desni_tip, scope, unutar):
                 raise SemantičkaGreška(
                     f'oba operanda moraju biti istog tipa {lijevi_tip}')
+        elif op ^ {T.LOGI, T.LOGILI}:
+            if not (tipovi.equiv_types(lijevi_tip, Token(T.BOOL), scope, unutar) and tipovi.equiv_types(desni_tip, Token(T.BOOL), scope, unutar)):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.BOOL}')
         else:
             raise SemantičkaGreška(f'nepoznat operator {op}')
 
@@ -439,6 +462,12 @@ class Infix(AST):
             return 1 if lijevi == desni else 0
         elif op ^ T.NEJEDNAKO:
             return 1 if lijevi != desni else 0
+        elif op ^ T.ILI:
+            return lijevi or desni
+        elif op ^ T.I:
+            return lijevi and desni
+        elif op ^ T.NEGACIJA:
+            return not desni
         else:
             raise SemantičkaGreška(f'nepoznat operator {op}')
 
