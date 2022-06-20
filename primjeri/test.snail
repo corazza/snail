@@ -3,3 +3,7 @@ import "../std/io.snail";
 
 println(Concat(1, Concat(2, Nil))); // OK
 // println(Concat(1, Concat("asdf", Nil))); // type error!
+
+let x: List<int> = Concat(1, Concat(2, Nil));
+let y: List<int> = Concat(1, Concat("asdf", Nil));
+println(x == y);

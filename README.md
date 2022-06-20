@@ -80,14 +80,69 @@ enddata
 `Nil` predstavlja bazni slučaj,
 a `Concat(A, List<A>)` predstavlja vrijednost tipa `A` koja je dodana na početak liste tipa `List<A>`.
 
+
+## Pattern matching
+
+Korisnički tipovi podataka u Snaskellu imaju oblik "sume produkta" tipova,
+u smislu da su konstruktori članovi sume, a polja konstruktora faktori produkta.
+U ovom kontekstu, suma se može shvatiti kao *ili* (`List<A>` je ili `Nil` ili `Concat`),
+a produkt se može shvatiti kao *i* (`Concat(A, List<A>)` sadrži i `A` i `List<A>`).
+Takva algebarska interpretacija tipova od klasične `case` sintakse iz C-ovskih jezika
+daje znatno korisniju konstrukciju koja pomaže u kontroli toka,
+pristupanju poljima, i pokrivanju relevantnih slučajeva na vizualno intuitivan način.
+
+To ćemo demonstrirati na primjeru funkcije `head(xs: List<A>) -> Option<A>` koja vraća prvi element liste (ako postoji):
+
+```
+def head(xs: List<A>) -> Option<A> as
+    match xs as
+        Concat(x, tail) => return Some(x),
+        Nil => return None
+    endmatch
+enddef
+```
+
+Ulazna lista `xs` može biti ili prazna (bazni `Nil` slučaj) ili konkatenacija nekog `A` s listom `A`-ova.
+`match` naredba prima neku složenu vrijednost (tj. instancu tipa koji ima konstruktore, u ovom slučaju `xs`).
+Tijelo match naredbe sadrži nizove oblika *pattern => naredba*.
+Pattern mora biti jedan od konstruktora tipa kojeg ima složena vrijednost `match` naredbe,
+preciznije pattern je "oblik" konstruktora koji umjesto argumenata
+(tj. konkretnih vrijednosti koje bi instancirale tip na kojeg se konstruktor odnosi)
+sadrži slobodne varijable.
+U gornjem primjeru, pattern `Concat(x, tail)` uvodi slobodne varijable `x` i `tail`.
+Kažemo da se vrijednost dana matchu (`xs`) poklapa s nekim patternom ako je sastavljana od istog konstruktora na koji se odnosi pattern.
+Npr. ako je dani `xs == Concat(1, Nil)`, on se poklapa s patternom `Concat(x, tail)` i ne s `Nil`.
+Ako se dana vrijednost poklapa s patternom, izvršit će se uz taj pattern vezana naredba tako da se  varijable iz patterna uvedu u scope i vežu za dijelove dane vrijednosti (3x će u naredbi imati vrijednost 31, a 3tail vrijednost 3Nil).
+
+Type checking će se pobrinuti da su pokriveni svi mogući slučajevi, i da su to samo oni koji odgovaraju tipu dane vrijednosti.
+Korist takve restrikcije je da se svi *mogući* događaji moraju pokriti.
+To je najbolje vidljivo na sljedećem primjeru koji pak analizira povratnu vrijednost 3head funkcije (taj `primjeri/liste.snail`):
+
+```
+print("Prvi element: ");
+
+match head(lista) as
+    None => print("nema ga"),
+    Some(x) => print(x)
+endmatch
+```
+
+Kad bi funkcionalnost 3head-a implementirali u klasičnim programskim jezicima poput C-a ili Pythona,
+ne bi mogli biti sigurni da pozivatelji provjeravaju slučaj u kojemu 3head vrati 3null pointer ili 3None,
+ali Snaskell program u kojemu se to ne provjerava neće proći type checking.
+
+Nažalost ovo je daleko od pune moći koju se inače očekuje od matcha,
+a to je da se umjesto ovako usko definiranih patterna mogu koristiti proizvoljni izrazi, tj. da se dopusti da istovremeno postoje patterni `Concat(x, tail)`, `Concat(f(a), Nil)`, `Concat(x, Concat(y, Nil))` i slično.
+
 ## Type checking
 
 Type checking se odvija statički, prije izvršavanja programa, te osigurava sljedeće.
 
-1. Da se dani argumenti poklapaju s parametrima funkcija u tipu.
-2. Da funkcije vraćaju tip dobre vrijednosti (kakav je definiran).
-3. 
+1. Dani argumenti se poklapaju s parametrima funkcija u tipu.
+2. Funkcije vraćaju vrijednost dobrog tipa (kakav je definiran).
+3. Obrasci u match izrazima pokrivaju sve konstruktore, i samo konstruktore tog tipa.
 
+Točke (1) i (2) se odnose i na konstruktore, koje možemo shvatiti kao funkcije.
 
 println(Concat(1, Concat(2, Nil))); // OK
 // println(Concat(1, Concat("asdf", Nil))); // type error!

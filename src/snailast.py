@@ -195,6 +195,20 @@ class SloženaVrijednost(AST):
         argumenti = ", ".join(map(printanje_str, self.argumenti))
         return f"{ime}({argumenti})" if len(argumenti) > 0 else f"{ime}"
 
+    def vrijednost(self):
+        return self
+    
+    def vrijednosti(self):
+        return self.argumenti
+
+    def __eq__(self, other):
+        if not isinstance(other, SloženaVrijednost):
+            return False
+        if self.konstruktor != other.konstruktor:
+            return False
+        # složena vrijednost uvijek nastaje kao poziv, argumenti su izvrijednjeni
+        # ovo će rekurzivno pozvati arg.__eq__ na svim argumentima, pa prolazi za nestane složene vrijednosti
+        return self.argumenti == other.argumenti
 
 class Konstruktor(AST):
     od: 'VELIKOIME'
