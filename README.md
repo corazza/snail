@@ -112,11 +112,13 @@ sadrži slobodne varijable.
 U gornjem primjeru, pattern `Concat(x, tail)` uvodi slobodne varijable `x` i `tail`.
 Kažemo da se vrijednost dana matchu (`xs`) poklapa s nekim patternom ako je sastavljana od istog konstruktora na koji se odnosi pattern.
 Npr. ako je dani `xs == Concat(1, Nil)`, on se poklapa s patternom `Concat(x, tail)` i ne s `Nil`.
-Ako se dana vrijednost poklapa s patternom, izvršit će se uz taj pattern vezana naredba tako da se  varijable iz patterna uvedu u scope i vežu za dijelove dane vrijednosti (3x će u naredbi imati vrijednost 31, a 3tail vrijednost 3Nil).
+Ako se dana vrijednost poklapa s patternom,
+zvršit će se uz taj pattern vezana naredba tako da se  varijable iz patterna uvedu u scope i vežu za dijelove dane vrijednosti
+(`x` će u naredbi imati vrijednost `1`, a `tail` vrijednost `Nil`).
 
 Type checking će se pobrinuti da su pokriveni svi mogući slučajevi, i da su to samo oni koji odgovaraju tipu dane vrijednosti.
 Korist takve restrikcije je da se svi *mogući* događaji moraju pokriti.
-To je najbolje vidljivo na sljedećem primjeru koji pak analizira povratnu vrijednost 3head funkcije (taj `primjeri/liste.snail`):
+To je najbolje vidljivo na sljedećem primjeru koji pak analizira povratnu vrijednost `head` funkcije (taj `primjeri/liste.snail`):
 
 ```
 print("Prvi element: ");
@@ -127,12 +129,14 @@ match head(lista) as
 endmatch
 ```
 
-Kad bi funkcionalnost 3head-a implementirali u klasičnim programskim jezicima poput C-a ili Pythona,
-ne bi mogli biti sigurni da pozivatelji provjeravaju slučaj u kojemu 3head vrati 3null pointer ili 3None,
+Kad bi funkcionalnost `head`a implementirali u klasičnim programskim jezicima poput C-a ili Pythona,
+ne bi mogli biti sigurni da pozivatelji provjeravaju slučaj u kojemu `head` vrati null pointer ili `None`,
 ali Snaskell program u kojemu se to ne provjerava neće proći type checking.
 
 Nažalost ovo je daleko od pune moći koju se inače očekuje od matcha,
-a to je da se umjesto ovako usko definiranih patterna mogu koristiti proizvoljni izrazi, tj. da se dopusti da istovremeno postoje patterni `Concat(x, tail)`, `Concat(f(a), Nil)`, `Concat(x, Concat(y, Nil))` i slično.
+a to je da se umjesto ovako usko definiranih patterna mogu koristiti proizvoljni izrazi,
+tj. da se dopusti da istovremeno postoje patterni
+`Concat(x, tail)`, `Concat(f(a), Nil)`, `Concat(x, Concat(y, Nil))` i slično.
 
 ## Type checking
 
