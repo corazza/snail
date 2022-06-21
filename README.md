@@ -5,7 +5,8 @@ Naša implementacija [Snaila](https://www.cs.rpi.edu/courses/fall01/modcomp/proj
 1. korisnički tipovi podataka i type checking
 2. polimorfizam (templates/generics)
 3. jednostavan pattern matching
-4. definiranje funkcija (može rekurzivnih) i opcionalna memoizacija
+4. definiranje operatora
+5. definiranje funkcija (može rekurzivnih) i opcionalna memoizacija
 
 Kako je navedeno u zadatku konstrukti za petlje (while, for) su izbačeni.
 
@@ -234,6 +235,45 @@ tj. mora vratiti vrijednost dobrog tipa i nema opciju vraćanja ničega
 U tu svrhu postoji tip `unit` koji ima samo jednu vrijednost `UNIT` i ne prenosi nikakvu povratnu informaciju.
 Na primjer, funkcija `println` vraća `unit`.
 
+## Korisnički operatori
+
+Snaskell dopušta korisniku da sam definira unarne, binarne, ili ternarne operatore.
+Podržani operatori su `$`, `€` (unarni); `++`, `%` (binarni); i `?`, `@` (ternarni).
+Izvan tog skupa ne mogu se definirati korisnički operatori.
+Nemaju defaultnu implementaciju, ali u primjerima se mogu naći neki prijedlozi, poput:
+
+```
+operator %(x: Option<A>, default: A) -> A as
+    match x as
+        None => return default,
+        Some(a) => return a
+    endmatch
+endoperator
+```
+
+Ovo definira operator `%`, koji znači "ako je x pun, vrati njegov sadržaj, a ako nije, vrati default."
+
+Npr. sljedeći kod printa "ipak default" pa "var y":
+
+```
+let x: Option<string> = None;
+let y: Option<string> = Some("var y");
+
+println(x % default); // ipak default
+println(y % default); // var y
+```
+
+Još jedan primjer gdje se `++` definira kao konkatenacija listi:
+
+```
+operator ++(xs: List<A>, ys: List<A>) -> List<A> as
+    match xs as
+        Nil => return ys,
+        Concat(x, xs) => return Concat(x, xs ++ ys)
+    endmatch
+endoperator
+```
+
 ## Funkcije
 
 Uz podržavanje rekurzivnih definicija, Snaskell podržava i memoizaciju preko ključne riječi `memo`. Sljedeći primjer (iz `primjeri/fibonacci.snail`) naivnu rekurzivnu implementaciju računanja Fibonaccijevih brojeva svodi na O(n):
@@ -283,27 +323,3 @@ enddef
 ```
 
 Interno, postoje naredbe `__input x;` i `__to_int from to;` koje ovu funkcionalnost delegiraju Pythonu.
-
-# Kriteriji zadaće
-
-> definicije funkcija i funkcijske pozive (uključujući rekurzivne)
-
-Podržavamo
-
-> barem dva tipa podataka koji nisu uobičajeni u (poznatijim) programskim
-jezicima; jedan od njih smije biti konačan, a drugi mora biti potencijalno
-beskonačan, tj. ne smije imati unaprijed fiksiran broj elemenata (primjeri
-takvih, ali uobičajenih tipova su redom Pythonov bool i int)
-
-Ovo je pokriveno korisničkim tipovima podataka.
-
-> barem dva unarna, dva binarna i jedan ternarni operator za rad s gornjim
-tipovima
-
-Ovu točku ne ispunjavamo u potpunosti. 
-
-implicitno pretvaranje među tipovima,
-
-unos s tipkovnice u varijable te
-
-višelinijske komentare

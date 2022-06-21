@@ -1,4 +1,43 @@
-import "../std/io.snail";
+// import "../std/io.snail";
+
+data Option<A> as
+    None,
+    Some(A)
+enddata
+
+def is_none(x: Option<A>) -> bool as
+    match x as
+        None => return true,
+        Some(y) => return false
+    endmatch
+enddef
+
+def is_some(x: Option<A>) -> bool as
+    return !is_none(x);
+enddef
+
+def print(x: A) -> unit as
+    __print x;
+    return UNIT;
+enddef
+
+def println(x: A) -> unit as
+    __print x;
+    __print __newline;
+    return UNIT;
+enddef
+
+def input() -> string as
+    let x: string = "";
+    __input x;
+    return x;
+enddef
+
+def to_int(x: string) -> int as
+    let y: int = 0;
+    __to_int x y;
+    return y;
+enddef
 
 let a: bool = false;
 let b: bool = true;
@@ -25,6 +64,20 @@ operator ?(prvi: bool, lijevi: int, desni: int) -> int as
     endif
 endoperator
 
+let x: Option<string> = None;
+let y: Option<string> = Some("var y");
+
+let default: string = "ipak default";
+
+operator %(x: Option<A>, default: A) -> A as
+    match x as
+        None => return default,
+        Some(a) => return a
+    endmatch
+endoperator
+
+println(x % default);
+println(y % default);
 
 println(a); // true
 println(a ? 7 : 2); // 7

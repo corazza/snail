@@ -8,10 +8,13 @@ class T(TipoviTokena):
         'if', 'then', 'else', 'endif', 'def', 'operator', 'memo', 'as', 'enddef', 'endoperator'
     DATA, ENDDATA, MATCH, ENDMATCH = 'data', 'enddata', 'match', 'endmatch'
     PLUS, MINUS, PUTA, DIV = '+-*/'
-    KONJEKSP = '$'
-    KONKAT = '++'
-    TERNARNI = '?'
-    TERNARNI_SEP = ':'
+
+    # Korisnički operatori
+    DOLAR, EURO = '$', '€'  # unarni
+    DUPLIPLUS, PERCENTAGE = '++', '%'  # binarni
+    UPITNIK, ATMONKEY = '?', '@'  # ternarni
+    TERNARNI_SEP = ':' # svi ternarni operatori koriste ovaj separator drugog i trećeg operanda
+
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO, SLIJEDI = '<', '>', '<=', '>=', '==', '!=', '=>'
     LOGI, LOGILI, NEGACIJA, = '&&', '||', '!'
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
@@ -79,10 +82,14 @@ class T(TipoviTokena):
         def __str__(self):
             return self.sadržaj
 
-korisnicki_operatori = {T.KONJEKSP, T.KONKAT, T.TERNARNI}
-unarni_korisnicki_operatori = {T.KONJEKSP}
-binarni_korisnicki_operatori = {T.KONKAT}
-ternarni_korisnicki_operatori = {T.TERNARNI}
+
+unarni_korisnicki_operatori = {T.DOLAR, T.EURO}
+binarni_korisnicki_operatori = {T.DUPLIPLUS, T.PERCENTAGE}
+ternarni_korisnicki_operatori = {T.UPITNIK, T.ATMONKEY}
+
+korisnicki_operatori = unarni_korisnicki_operatori.union(
+    binarni_korisnicki_operatori).union(ternarni_korisnicki_operatori)
+
 
 @lexer
 def snail(lex):
@@ -91,11 +98,11 @@ def snail(lex):
             lex.zanemari()
         elif znak == '+':
             if lex >= '+':
-                yield lex.token(T.KONKAT)
+                yield lex.token(T.DUPLIPLUS)
             else:
                 yield lex.token(T.PLUS)
         elif znak == '?':
-            yield lex.token(T.TERNARNI)
+            yield lex.token(T.UPITNIK)
         elif znak == '<':
             yield lex.token(T.JMANJE if lex >= '=' else T.MANJE)
         elif znak == '>':

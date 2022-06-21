@@ -294,15 +294,18 @@ class P(Parser):
 
     def izraz(p):
         stablo = p.član()
-        while op := p >= {T.PLUS, T.MINUS, T.MANJE, T.VECE, T.JMANJE, T.JVECE, T.JEDNAKO, T.NEJEDNAKO, T.LOGI, T.LOGILI, T.NEGACIJA, T.KONKAT, T.KONJEKSP}:
+        while op := p >= {T.PLUS, T.MINUS, T.MANJE, T.VECE, T.JMANJE,
+                          T.JVECE, T.JEDNAKO, T.NEJEDNAKO, T.LOGI,
+                          T.LOGILI, T.NEGACIJA, T.DUPLIPLUS, T.PERCENTAGE}\
+                .union(unarni_korisnicki_operatori):
             desni = p.član()
             stablo = Infix(op, stablo, desni)
         return stablo
 
     def član(p) -> 'faktor|Infix':
         stablo = p.faktor()
-        while op := p >= {T.PUTA, T.DIV, T.LOGI, T.TERNARNI}:
-            if not op ^ T.TERNARNI:
+        while op := p >= {T.PUTA, T.DIV, T.LOGI}.union(ternarni_korisnicki_operatori):
+            if not op ^ ternarni_korisnicki_operatori:
                 desni = p.faktor()
                 stablo = Infix(op, stablo, desni)
             else:
@@ -323,7 +326,7 @@ class P(Parser):
                 return izraz
         elif minus := p >= T.MINUS:
             return Infix(minus, nenavedeno, p.faktor())
-        elif konjeksp := p >= T.KONJEKSP:
+        elif konjeksp := p >= T.DOLAR:
             return Infix(konjeksp, nenavedeno, p.faktor())
         elif negacija := p >= T.NEGACIJA:
             return Infix(negacija, nenavedeno, p.faktor())
