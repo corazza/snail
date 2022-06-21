@@ -8,6 +8,7 @@ class T(TipoviTokena):
         'if', 'then', 'else', 'endif', 'def', 'memo', 'as', 'enddef'
     DATA, ENDDATA, MATCH, ENDMATCH = 'data', 'enddata', 'match', 'endmatch'
     PLUS, MINUS, PUTA, DIV = '+-*/'
+    KONKAT = '++'
     MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO, SLIJEDI = '<', '>', '<=', '>=', '==', '!=', '=>'
     TERNARNI = '?'
     NEGACIJA, KONJEKSP = '!$'
@@ -83,6 +84,11 @@ def snail(lex):
     for znak in lex:
         if znak.isspace():
             lex.zanemari()
+        elif znak == '+':
+            if lex >= '+':
+                yield lex.token(T.KONKAT)
+            else:
+                yield lex.token(T.PLUS)
         elif znak == '?':
             yield lex.token(T.TERNARNI)
         elif znak == '<':

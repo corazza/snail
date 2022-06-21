@@ -428,12 +428,12 @@ class Infix(AST):
     def typecheck(self, scope, unutar, meta):
         op = self.operator
         if self.lijevi == nenavedeno:
-            lijevi_tip = Token(T.INT) if op ^ T.MINUS else Token(T.BOOLT)
+            lijevi_tip = Token(T.INT) if op ^ T.MINUS or op ^ T.KONJEKSP else Token(T.BOOLT)
         else:
             lijevi_tip = self.lijevi.typecheck(scope, unutar, meta)
         desni_tip = self.desni.typecheck(scope, unutar, meta)
 
-        if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV, T.MANJE, T.JMANJE, T.VECE, T.JVECE}:
+        if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV, T.MANJE, T.JMANJE, T.VECE, T.JVECE, T.KONJEKSP}:
             if not (tipovi.equiv_types(lijevi_tip, Token(T.INT), scope, unutar) and tipovi.equiv_types(desni_tip, Token(T.INT), scope, unutar)):
                 raise SemantičkaGreška(
                     f'oba operanda moraju biti tipa {T.INT}')
@@ -449,11 +449,18 @@ class Infix(AST):
             if not tipovi.equiv_types(desni_tip, Token(T.BOOLT), scope, unutar):
                 raise SemantičkaGreška(
                     f'oba operanda moraju biti tipa {T.BOOLT}')
+        elif op ^ T.KONKAT:
+            if not (tipovi.equiv_types(lijevi_tip, Token(T.STRING), scope, unutar) and tipovi.equiv_types(desni_tip, Token(T.STRING), scope, unutar)):
+                raise SemantičkaGreška(
+                    f'oba operanda moraju biti tipa {T.STRING}')
+            
         else:
             raise SemantičkaGreška(f'nepoznat operator {op}')
 
         if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV}:
             return Token(T.INT)
+        elif op ^ {T.KONKAT}:
+            return Token(T.STRING)
         else:
             return Token(T.BOOLT)
 
@@ -493,6 +500,10 @@ class Infix(AST):
             return lijevi and desni
         elif op ^ T.NEGACIJA:
             return not desni
+        elif op ^ T.KONJEKSP:
+            return 1 - 1//desni
+        elif op ^ T.KONKAT:
+            return lijevi + desni
         else:
             raise SemantičkaGreška(f'nepoznat operator {op}')
 

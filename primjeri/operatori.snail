@@ -5,11 +5,21 @@ let b: bool = true;
 let c: bool = true;
 let d: bool = false;
 let e: bool = true;
+let i: int = 5;
+let j: int = 0;
+let f: string = "abc";
+let g: string = "def";
+// let h: string = "fedbac";
 
 a = d | e;
 b = !e;
 c = d & e;
+// h = f ++ g;
+j = $i;
+
 
 println(a); // true
 println(b); // false
 println(c); // false
+println(j); // 1
+// println(h); // "abcdef"

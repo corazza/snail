@@ -260,7 +260,7 @@ class P(Parser):
 
     def izraz(p):
         stablo = p.član()
-        while op := p >= {T.PLUS, T.MINUS, T.MANJE, T.VECE, T.JMANJE, T.JVECE, T.JEDNAKO, T.NEJEDNAKO, T.LOGI, T.LOGILI, T.NEGACIJA}:
+        while op := p >= {T.PLUS, T.MINUS, T.MANJE, T.VECE, T.JMANJE, T.JVECE, T.JEDNAKO, T.NEJEDNAKO, T.LOGI, T.LOGILI, T.NEGACIJA, T.KONKAT, T.KONJEKSP}:
             desni = p.član()
             stablo = Infix(op, stablo, desni)
         return stablo
@@ -280,12 +280,16 @@ class P(Parser):
                 izraz = p.izraz()
                 p >> T.ZATV
                 return izraz
+        elif konkat := p >= T.KONKAT:
+            return konkat
         elif logili := p >= T.LOGILI:
             return logili
         elif logi := p >= T.LOGI:
             return logi
         elif minus := p >= T.MINUS:
             return Infix(minus, nenavedeno, p.faktor())
+        elif konjeksp := p >= T.KONJEKSP:
+            return Infix(konjeksp, nenavedeno, p.faktor())
         elif negacija := p >= T.NEGACIJA:
             return Infix(negacija, nenavedeno, p.faktor())
         elif p >= T.TRUE:
