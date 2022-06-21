@@ -276,7 +276,7 @@ class Funkcija(AST):
                 raise GreškaIzvođenja(f'{funkcija.ime} nije ništa vratila')
 
     def izvrši(self, mem, unutar):
-        """<Funkcija> definicije se ne izvršavaju"""
+        mem[self.ime] = self
 
 
 class Poziv(AST):
@@ -290,11 +290,6 @@ class Poziv(AST):
         argumenti = [a.typecheck(scope, unutar, meta) for a in poziv.argumenti]
 
         if isinstance(pozvana, Funkcija):
-            # for (p, a) in zip(parametri, argumenti):
-            #     if not tipovi.equiv_types(p, a, scope, unutar):
-            #         raise SemantičkaGreška(
-            #             f'očekivan tip {p}, a dan {a}')
-            # IPython.embed()
             return tipovi.funkcija_u_tip(pozvana, argumenti, scope, unutar)
         else:  # TODO ujedini funkcije i konstruktore
             assert(isinstance(pozvana, Konstruktor))
@@ -379,6 +374,22 @@ class ToInt(AST):
     def izvrši(self, mem, unutar):
         mem[self.u] = int(mem[self.iz])
 
+class Concat(AST):
+    prvi: 'IME'
+    drugi: 'IME'
+    treci: 'IME'
+
+    def typecheck(self, scope, unutar, meta):
+        if not tipovi.equiv_types(scope[self.prvi], Token(T.STRINGT), scope, unutar):
+            raise SemantičkaGreška(f'prvi izvor mora biti tipa {T.STRINGT}')
+        if not tipovi.equiv_types(scope[self.drugi], Token(T.STRINGT), scope, unutar):
+            raise SemantičkaGreška(f'drugi izvor mora biti tipa {T.STRINGT}')
+        if not tipovi.equiv_types(scope[self.treci], Token(T.STRINGT), scope, unutar):
+            raise SemantičkaGreška(f'odredište mora biti tipa {T.STRINGT}')
+
+    def izvrši(self, mem, unutar):
+        mem[self.treci] = mem[self.prvi] + mem[self.drugi]
+
 
 class Grananje(AST):
     provjera: 'izraz'
@@ -419,6 +430,44 @@ class Negacija(AST):
         else: 
             return Negacija(ispod_opt)
 
+class Ternarni(AST):
+    operator: 'T'
+    prvi: 'faktor'
+    lijevi: 'faktor'
+    desni: 'faktor'
+
+    def typecheck(self, scope, unutar, meta):
+        op = self.operator
+        prvi_tip = self.lijevi.typecheck(scope, unutar, meta)
+        lijevi_tip = self.lijevi.typecheck(scope, unutar, meta)
+        desni_tip = self.desni.typecheck(scope, unutar, meta)
+
+        if op ^ ternarni_korisnicki_operatori:
+            argumenti = [prvi_tip, lijevi_tip, desni_tip]
+            if op in scope:
+                tip_funkcije = scope[op]
+                return tipovi.funkcija_u_tip_operator(tip_funkcije, argumenti, scope, unutar)
+            else:
+                pozvana = unutar
+                return tipovi.funkcija_u_tip(pozvana, argumenti, scope, unutar)
+        else:
+            raise SemantičkaGreška(f'nepoznat operator {op}')
+
+    def vrijednost(self, mem, unutar):
+        op = self.operator
+        prvi = self.prvi.vrijednost(mem, unutar)
+        lijevi = self.lijevi.vrijednost(mem, unutar)
+        desni = self.desni.vrijednost(mem, unutar)
+
+        if op ^ ternarni_korisnicki_operatori:
+            if op in mem:
+                pozvana = mem[op]
+            else:
+                pozvana = unutar
+            argumenti = [prvi, lijevi, desni]
+            return pozvana.pozovi(mem, unutar, argumenti)
+        else:
+            raise GreškaIzvođenja(f'nepoznat operator {op}')
 
 class Infix(AST):
     operator: 'PLUS|MINUS|...'
@@ -428,12 +477,19 @@ class Infix(AST):
     def typecheck(self, scope, unutar, meta):
         op = self.operator
         if self.lijevi == nenavedeno:
-            lijevi_tip = Token(T.INT) if op ^ T.MINUS or op ^ T.KONJEKSP else Token(T.BOOLT)
+            if op ^ T.MINUS:
+                lijevi_tip = Token(T.INT) 
+            elif op ^ T.NEGACIJA:
+                lijevi_tip = Token(T.BOOLT)
+            elif op ^ unarni_korisnicki_operatori:
+                lijevi_tip = None
+            else:
+                raise SemantičkaGreška(f'samo minus i negacija su unarni operatori')
         else:
             lijevi_tip = self.lijevi.typecheck(scope, unutar, meta)
         desni_tip = self.desni.typecheck(scope, unutar, meta)
 
-        if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV, T.MANJE, T.JMANJE, T.VECE, T.JVECE, T.KONJEKSP}:
+        if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV, T.MANJE, T.JMANJE, T.VECE, T.JVECE}:
             if not (tipovi.equiv_types(lijevi_tip, Token(T.INT), scope, unutar) and tipovi.equiv_types(desni_tip, Token(T.INT), scope, unutar)):
                 raise SemantičkaGreška(
                     f'oba operanda moraju biti tipa {T.INT}')
@@ -449,18 +505,23 @@ class Infix(AST):
             if not tipovi.equiv_types(desni_tip, Token(T.BOOLT), scope, unutar):
                 raise SemantičkaGreška(
                     f'oba operanda moraju biti tipa {T.BOOLT}')
-        elif op ^ T.KONKAT:
-            if not (tipovi.equiv_types(lijevi_tip, Token(T.STRING), scope, unutar) and tipovi.equiv_types(desni_tip, Token(T.STRING), scope, unutar)):
-                raise SemantičkaGreška(
-                    f'oba operanda moraju biti tipa {T.STRING}')
-            
+        elif op ^ korisnicki_operatori:
+            if op ^ unarni_korisnicki_operatori:
+                argumenti = [desni_tip]
+            else:
+                assert(op ^ binarni_korisnicki_operatori)
+                argumenti = [lijevi_tip, desni_tip]
+            if op in scope:
+                tip_funkcije = scope[op]
+                return tipovi.funkcija_u_tip_operator(tip_funkcije, argumenti, scope, unutar)
+            else:
+                pozvana = unutar
+                return tipovi.funkcija_u_tip(pozvana, argumenti, scope, unutar)
         else:
             raise SemantičkaGreška(f'nepoznat operator {op}')
 
         if op ^ {T.PLUS, T.MINUS, T.PUTA, T.DIV}:
             return Token(T.INT)
-        elif op ^ {T.KONKAT}:
-            return Token(T.STRING)
         else:
             return Token(T.BOOLT)
 
@@ -500,12 +561,19 @@ class Infix(AST):
             return lijevi and desni
         elif op ^ T.NEGACIJA:
             return not desni
-        elif op ^ T.KONJEKSP:
-            return 1 - 1//desni
-        elif op ^ T.KONKAT:
-            return lijevi + desni
+        elif op ^ korisnicki_operatori:
+            if op in mem:
+                pozvana = mem[op]
+            else:
+                pozvana = unutar
+            if op ^ unarni_korisnicki_operatori:
+                argumenti = [desni]
+            else:
+                assert(op ^ binarni_korisnicki_operatori)
+                argumenti = [lijevi, desni]
+            return pozvana.pozovi(mem, unutar, argumenti)
         else:
-            raise SemantičkaGreška(f'nepoznat operator {op}')
+            raise GreškaIzvođenja(f'nepoznat operator {op}')
 
 
 class Tipizirano(AST):

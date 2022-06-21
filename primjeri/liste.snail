@@ -1,6 +1,13 @@
 import "../std/liste.snail";
 import "../std/io.snail";
 
+operator ++(xs: List<A>, ys: List<A>) -> List<A> as
+    match xs as
+        Nil => return ys,
+        Concat(x, xs) => return Concat(x, xs ++ ys)
+    endmatch
+endoperator
+
 def unesi_element(n: int, xs: List<A>) -> List<A> as
     print("Unesite element ");
     print(n);
@@ -23,17 +30,25 @@ def unesi_n_elemenata(n: int) -> List<int> as
     return unesi_n_elemenata_rek(lista, n);
 enddef
 
-print("Unesite broj elemenata: ");
-let n: int = to_int(input());
+def unesi_listu() -> List<int> as
+    print("Unesite broj elemenata: ");
+    let n: int = to_int(input());
+    return unesi_n_elemenata(n);
+enddef
 
-let lista: List<int> = unesi_n_elemenata(n);
-
+let lista: List<int> = unesi_listu();
 println("Unesena lista:");
 println(lista);
 
 print("Prvi element: ");
 
 match head(lista) as
-    None => print("nema ga"),
-    Some(x) => print(x)
+    None => println("nema ga"),
+    Some(x) => println(x)
 endmatch
+
+println("Unos druge liste...");
+let lista2: List<int> = unesi_listu();
+
+print("prva ++ druga == ");
+println(lista ++ lista2);

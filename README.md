@@ -283,3 +283,27 @@ enddef
 ```
 
 Interno, postoje naredbe `__input x;` i `__to_int from to;` koje ovu funkcionalnost delegiraju Pythonu.
+
+# Kriteriji zadaće
+
+> definicije funkcija i funkcijske pozive (uključujući rekurzivne)
+
+Podržavamo
+
+> barem dva tipa podataka koji nisu uobičajeni u (poznatijim) programskim
+jezicima; jedan od njih smije biti konačan, a drugi mora biti potencijalno
+beskonačan, tj. ne smije imati unaprijed fiksiran broj elemenata (primjeri
+takvih, ali uobičajenih tipova su redom Pythonov bool i int)
+
+Ovo je pokriveno korisničkim tipovima podataka.
+
+> barem dva unarna, dva binarna i jedan ternarni operator za rad s gornjim
+tipovima
+
+Ovu točku ne ispunjavamo u potpunosti. 
+
+implicitno pretvaranje među tipovima,
+
+unos s tipkovnice u varijable te
+
+višelinijske komentare

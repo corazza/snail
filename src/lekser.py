@@ -4,19 +4,20 @@ from util import *
 
 
 class T(TipoviTokena):
-    IF, THEN, ELSE, ENDIF, DEF, MEMO, AS, ENDDEF =\
-        'if', 'then', 'else', 'endif', 'def', 'memo', 'as', 'enddef'
+    IF, THEN, ELSE, ENDIF, DEF, OPERATOR, MEMO, AS, ENDDEF, ENDOPERATOR =\
+        'if', 'then', 'else', 'endif', 'def', 'operator', 'memo', 'as', 'enddef', 'endoperator'
     DATA, ENDDATA, MATCH, ENDMATCH = 'data', 'enddata', 'match', 'endmatch'
     PLUS, MINUS, PUTA, DIV = '+-*/'
+    KONJEKSP = '$'
     KONKAT = '++'
-    MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO, SLIJEDI = '<', '>', '<=', '>=', '==', '!=', '=>'
     TERNARNI = '?'
-    NEGACIJA, KONJEKSP = '!$'
-    LOGI, LOGILI = '&', '|'
+    TERNARNI_SEP = ':'
+    MANJE, VECE, JMANJE, JVECE, JEDNAKO, NEJEDNAKO, SLIJEDI = '<', '>', '<=', '>=', '==', '!=', '=>'
+    LOGI, LOGILI, NEGACIJA, = '&&', '||', '!'
     OTV, ZATV, PRIDRUŽI, TOČKAZ, NAVODNIK, ZAREZ = '()=;",'
     LET, OFTYPE, FTYPE = 'let', ':', '->'
     INT, BOOLT, STRINGT, UNITT = 'int', 'bool', 'string', 'unit'
-    PRINT, INPUT, NEWLINE, TOINT = '__print', '__input', '__newline', '__to_int'
+    PRINT, INPUT, NEWLINE, TOINT, CONCAT = '__print', '__input', '__newline', '__to_int', '__concat'
     RETURN, IMPORT = 'return', 'import'
     TRUE, FALSE = 'true', 'false'
 
@@ -78,6 +79,10 @@ class T(TipoviTokena):
         def __str__(self):
             return self.sadržaj
 
+korisnicki_operatori = {T.KONJEKSP, T.KONKAT, T.TERNARNI}
+unarni_korisnicki_operatori = {T.KONJEKSP}
+binarni_korisnicki_operatori = {T.KONKAT}
+ternarni_korisnicki_operatori = {T.TERNARNI}
 
 @lexer
 def snail(lex):
@@ -95,6 +100,12 @@ def snail(lex):
             yield lex.token(T.JMANJE if lex >= '=' else T.MANJE)
         elif znak == '>':
             yield lex.token(T.JVECE if lex >= '=' else T.VECE)
+        elif znak == '|':
+            if lex >= '|':
+                yield lex.token(T.LOGILI)
+        elif znak == '&':
+            if lex >= '&':
+                yield lex.token(T.LOGILI)
         elif znak == '=':
             if lex >= '=':
                 yield lex.token(T.JEDNAKO)

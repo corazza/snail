@@ -11,14 +11,24 @@ let f: string = "abc";
 let g: string = "def";
 // let h: string = "fedbac";
 
-a = d | e;
+a = d || e;
 b = !e;
-c = d & e;
+c = d && e;
 // h = f ++ g;
-j = $i;
+// j = $i;
+
+operator ?(prvi: bool, lijevi: int, desni: int) -> int as
+    if prvi then
+        return lijevi;
+    else
+        return desni;
+    endif
+endoperator
 
 
 println(a); // true
+println(a ? 7 : 2); // 7
+println(!a ? 7 : 2); // 2
 println(b); // false
 println(c); // false
 println(j); // 1

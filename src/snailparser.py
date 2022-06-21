@@ -46,12 +46,17 @@ class P(Parser):
             if read_delim:
                 p >> T.TOČKAZ
             return toint
+        elif p >= T.CONCAT:
+            concat = p.concat()
+            if read_delim:
+                p >> T.TOČKAZ
+            return concat
         elif p >= T.IF:
             return p.grananje()
-        elif p >= T.TERNARNI:
-            return p.ternarni()
         elif p >= T.DEF:
             return p.funkcija()
+        elif p >= T.OPERATOR:
+            return p.operator()
         elif p >= T.LET:
             let = p.definiranje()
             if read_delim:
@@ -131,15 +136,6 @@ class P(Parser):
         else:
             exit("Sintaktička greška")
 
-    def ternarni(p) -> 'Ternarni':
-        p >> T.OTV
-        provjera = p.izraz()
-        P >> T.OFTYPE
-        ako = p.naredbe(T.OFTYPE)
-        p >> T.OFTYPE
-        inače = p.naredbe(T.ZATV, pojedi=True)
-        return Grananje(provjera, ako, inače)
-
     def printanje(p) -> 'Ispis':
         if newline := p >= T.NEWLINE:
             return Ispis(newline)
@@ -161,6 +157,12 @@ class P(Parser):
         iz = p >> T.IME
         u = p >> T.IME
         return ToInt(iz, u)
+
+    def concat(p) -> 'Concat':
+        prvi = p >> T.IME
+        drugi = p >> T.IME
+        treci = p >> T.IME
+        return Concat(prvi, drugi, treci)
 
     def definiranje_tipa(p) -> 'Data':
         ime = p >> T.VELIKOIME
@@ -226,10 +228,10 @@ class P(Parser):
         stari_tipf = p.tipf
         memo_flag = 0
         # TODO istražiti: memorija u parseru je loša ideja, može li se ovo preseliti drugdje?
-        
+
         if p >= T.MEMO:
             memo_flag = 1
-        
+
         ime = p >> T.IME
         p.imef = ime
 
@@ -241,6 +243,38 @@ class P(Parser):
         p >> T.AS
         tijelo = p.naredbe(T.ENDDEF, pojedi=True)
         fja = Funkcija(ime, tip, parametri, tijelo, memo_flag)
+        p.funkcije[ime] = fja
+
+        p.imef = staro_imef
+        p.parametrif = stari_parametrif
+        p.tipf = stari_tipf
+
+        return fja
+
+    def operator(p) -> 'Funkcija':
+        staro_imef = p.imef
+        stari_parametrif = p.parametrif
+        stari_tipf = p.tipf
+
+        ime = p >> lekser.korisnicki_operatori
+        p.imef = ime
+
+        if ime ^ lekser.unarni_korisnicki_operatori:
+            parametri = p.parametri_tocno(1)
+        elif ime ^ lekser.binarni_korisnicki_operatori:
+            parametri = p.parametri_tocno(2)
+        elif ime ^ lekser.ternarni_korisnicki_operatori:
+            parametri = p.parametri_tocno(3)
+        else:
+            raise SintaksnaGreška('mora biti jedan ili dva parametra')
+
+        p.parametrif = parametri
+        p >> T.FTYPE
+        tip = p.tip()
+        p.tipf = tip
+        p >> T.AS
+        tijelo = p.naredbe(T.ENDOPERATOR, pojedi=True)
+        fja = Funkcija(ime, tip, parametri, tijelo, False)
         p.funkcije[ime] = fja
 
         p.imef = staro_imef
@@ -267,25 +301,26 @@ class P(Parser):
 
     def član(p) -> 'faktor|Infix':
         stablo = p.faktor()
-        while op := p >= {T.PUTA, T.DIV, T.LOGI}:
-            desni = p.faktor()
-            stablo = Infix(op, stablo, desni)
+        while op := p >= {T.PUTA, T.DIV, T.LOGI, T.TERNARNI}:
+            if not op ^ T.TERNARNI:
+                desni = p.faktor()
+                stablo = Infix(op, stablo, desni)
+            else:
+                lijevi = p.faktor()
+                p >> T.TERNARNI_SEP
+                desni = p.faktor()
+                return Ternarni(op, stablo, lijevi, desni)
         return stablo
 
     def faktor(p):
         if p >= T.OTV:
             if p >= T.ZATV:
+                # TODO FIXME
                 return UnitValue()
             else:
                 izraz = p.izraz()
                 p >> T.ZATV
                 return izraz
-        elif konkat := p >= T.KONKAT:
-            return konkat
-        elif logili := p >= T.LOGILI:
-            return logili
-        elif logi := p >= T.LOGI:
-            return logi
         elif minus := p >= T.MINUS:
             return Infix(minus, nenavedeno, p.faktor())
         elif konjeksp := p >= T.KONJEKSP:
@@ -329,6 +364,16 @@ class P(Parser):
         parametri = [p.tipizirano()]
         while p >= T.ZAREZ:
             parametri.append(p.tipizirano())
+        p >> T.ZATV
+        return parametri
+
+    def parametri_tocno(p, n) -> 'tipizirano*':
+        p >> T.OTV
+        parametri = []
+        for i in range(n-1):
+            parametri.append(p.tipizirano())
+            p >> T.ZAREZ
+        parametri.append(p.tipizirano())
         p >> T.ZATV
         return parametri
 

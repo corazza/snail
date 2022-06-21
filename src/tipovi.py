@@ -124,6 +124,10 @@ def funkcija_u_tip(pozvana, argumenti, scope, unutar):
     mapiranje = izračunaj_vartipa_mapiranje(parametri, argumenti)
     return apply_vartipa_mapping(mapiranje, pozvana.tip)
 
+def funkcija_u_tip_operator(tip_funkcije, argumenti, scope, unutar):
+    mapiranje = izračunaj_vartipa_mapiranje(tip_funkcije.parametri, argumenti)
+    return apply_vartipa_mapping(mapiranje, tip_funkcije.tip)
+
 
 def equiv_types(a, b, scope, unutar):
     """Checks types a and b for equality within a scope"""
