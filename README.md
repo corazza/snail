@@ -323,3 +323,7 @@ enddef
 ```
 
 Interno, postoje naredbe `__input x;` i `__to_int from to;` koje ovu funkcionalnost delegiraju Pythonu.
+
+-----
+
+Na projektu su radili Jan Corazza (type checking, korisnički tipovi podataka, pattern matching, primjeri programa), Mislav Stojanović (parsiranje, funkcije i memoizacija, korisnički operatori, primjeri programa), i Iva Sokolaj (lekser, parsiranje, primjeri programa).
