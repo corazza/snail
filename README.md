@@ -95,9 +95,9 @@ enddata
 ```
 
 Ovaj tip ima samo jedan konstruktor koji se zove `Pa`
-(trebao bi se zvati `Pair` ali ne može radi tehničke limitacije koja nije bila prioritetna).
-`Pa` prima dva izraza te ih stavlja u "produkt",
-tako da ta složena vrijednosti i prvog i drugog izraza.
+(trebao bi se zvati `Pair` ali ne može zbog tehničke limitacije koja nije bila prioritetna).
+`Pa` prima dva izraza te ih stavlja u produkt
+tako da istovremeno sadrži vrijednost i prvog i drugog izraza.
 Ti izrazi mogu ali ne moraju biti različitih tipova.
 
 ## Pattern matching

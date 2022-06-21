@@ -7,13 +7,13 @@ operator $(a: Pair<A, B>) -> Pair<B, A> as
     endmatch
 endoperator
 
-def dot(a: Pair<int, int>, b: Pair<int, int>) -> int as
+operator %(a: Pair<int, int>, b: Pair<int, int>) -> int as
     let x1: int = first(a);
     let y1: int = second(a);
     let x2: int = first(b);
     let y2: int = second(b);
     return x1 * x2 + y1 * y2;
-enddef
+endoperator
 
 def input_pair() -> Pair<int, int> as
     print("Unesite x: ");
@@ -34,7 +34,7 @@ print("|");
 print(p2);
 print(">");
 print(" = ");
-println(dot(p1, p2));
+println(p1 % p2);
 
 print("p3 = ");
 print(p3);

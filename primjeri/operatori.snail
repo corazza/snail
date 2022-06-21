@@ -72,7 +72,7 @@ let default: string = "ipak default";
 operator %(x: Option<A>, default: A) -> A as
     match x as
         None => return default,
-        Some(a) => return a
+        Some(x) => return x
     endmatch
 endoperator
 
