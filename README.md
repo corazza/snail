@@ -1,5 +1,13 @@
 # Snaskell
 
+An implementation of a simple Haskell-inspired programming language with:
+
+1. user defined data types and type checking
+2. polymorphism (templates/generics)
+3. simple pattern matching
+4. defining operators
+5. defining functions (recursive) with optional memoization
+
 Naša implementacija [Snaila](https://www.cs.rpi.edu/courses/fall01/modcomp/project2.pdf) koju zovemo Snaskell je inspirirana Haskellom i proširuje Snail dodavanjem sljedećih mogućnosti:
 
 1. korisnički tipovi podataka i type checking
